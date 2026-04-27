@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { api } from '@/lib/api'
+import { isDemoMode } from '@/lib/demoMode'
 
 interface User {
   id: string
@@ -23,6 +24,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (isDemoMode()) {
+      setUser({ id: 'demo-user-1', github_username: 'maneesh-demo', email: 'demo@drufiy.dev' })
+      setJwt('demo-token')
+      setLoading(false)
+      return
+    }
     const token = localStorage.getItem('drufiy_jwt')
     if (!token) {
       setLoading(false)

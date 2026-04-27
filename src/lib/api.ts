@@ -1,3 +1,5 @@
+import { isDemoMode, mockApi } from './demoMode'
+
 export class ApiError extends Error {
   status: number
   code: string
@@ -11,6 +13,7 @@ export class ApiError extends Error {
 const BASE = import.meta.env.VITE_API_URL as string
 
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
+  if (isDemoMode()) return mockApi(path, init) as Promise<T>
   const jwt = localStorage.getItem('drufiy_jwt')
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

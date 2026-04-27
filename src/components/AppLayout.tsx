@@ -6,7 +6,9 @@ import {
   History,
   Zap,
   LogOut,
+  X,
 } from 'lucide-react'
+import { isDemoMode, exitDemoMode } from '@/lib/demoMode'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +33,20 @@ export default function AppLayout() {
     <div className="flex h-screen bg-zinc-950 text-zinc-100">
       {/* Sidebar */}
       <aside className="w-60 flex-shrink-0 flex flex-col border-r border-zinc-800 bg-zinc-950">
+        {/* Demo banner */}
+        {isDemoMode() && (
+          <div className="flex items-center justify-between mx-3 mt-3 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30">
+            <span className="text-[10px] text-amber-400 font-medium tracking-wide">DEMO MODE</span>
+            <button
+              onClick={exitDemoMode}
+              className="text-amber-400/70 hover:text-amber-400 transition-colors ml-1"
+              aria-label="Exit demo mode"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        )}
+
         {/* Wordmark */}
         <div className="flex items-center gap-2 px-5 py-5 border-b border-zinc-800">
           <Zap className="h-5 w-5 text-violet-400" />

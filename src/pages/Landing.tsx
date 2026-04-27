@@ -150,9 +150,9 @@ export default function Landing() {
               variant="ghost"
               size="lg"
               className="text-zinc-300 hover:text-zinc-100 hover:bg-white/5 px-8 h-12 text-base rounded-xl border border-white/10"
-              onClick={() => navigate('/how-it-works')}
+              onClick={() => { window.location.href = '/dashboard?demo=true' }}
             >
-              See how it works
+              View live demo
             </Button>
           </div>
 
