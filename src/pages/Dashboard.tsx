@@ -208,38 +208,60 @@ export default function Dashboard() {
         </Alert>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+      {stats && (
+        <div className="mb-3">
+          <span className="inline-flex items-center gap-1.5 text-xs text-zinc-500">
+            <GitBranch className="h-3 w-3" />
+            {stats.repos_connected} repos connected
+          </span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-10">
         {statsLoading ? (
-          Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 w-full rounded-xl" />
-          ))
+          <>
+            <Skeleton className="h-44 w-full rounded-xl" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Skeleton className="h-28 w-full rounded-xl" />
+              <Skeleton className="h-28 w-full rounded-xl" />
+              <Skeleton className="h-28 w-full rounded-xl" />
+            </div>
+          </>
         ) : stats ? (
           <>
-            <StatCard
-              label="Repos Connected"
-              value={stats.repos_connected}
-              icon={<GitBranch className="h-4 w-4" />}
-              flash={flashCard === 'repos_connected'}
-            />
-            <StatCard
-              label="Failures Diagnosed"
-              value={stats.failures_diagnosed}
-              icon={<Zap className="h-4 w-4" />}
-              flash={flashCard === 'failures_diagnosed'}
-            />
-            <StatCard
-              label="PRs Created"
-              value={stats.prs_created}
-              icon={<GitPullRequest className="h-4 w-4" />}
-              flash={flashCard === 'prs_created'}
-            />
-            <StatCard
-              label="Verified Fixes"
-              value={stats.verified_fixes}
-              icon={<CheckCircle2 className="h-4 w-4" />}
-              flash={flashCard === 'verified_fixes'}
-              highlight
-            />
+            {/* Hero card */}
+            <div className="bg-gradient-to-br from-violet-950/40 to-zinc-900 border border-violet-800/30 rounded-xl p-7 flex flex-col justify-between">
+              <span className="text-zinc-400 text-xs font-medium uppercase tracking-wider">Engineering hours saved</span>
+              <div className="my-3">
+                <div className="text-5xl font-bold tracking-tight text-violet-200">
+                  {Math.round(stats.verified_fixes * 2.5)} hrs
+                </div>
+              </div>
+              <p className="text-zinc-500 text-xs">Based on avg 2.5 hours per CI debugging incident.</p>
+            </div>
+
+            {/* Three smaller stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <StatCard
+                label="Failures Diagnosed"
+                value={stats.failures_diagnosed}
+                icon={<Zap className="h-4 w-4" />}
+                flash={flashCard === 'failures_diagnosed'}
+              />
+              <StatCard
+                label="PRs Created"
+                value={stats.prs_created}
+                icon={<GitPullRequest className="h-4 w-4" />}
+                flash={flashCard === 'prs_created'}
+              />
+              <StatCard
+                label="Verified Fixes"
+                value={stats.verified_fixes}
+                icon={<CheckCircle2 className="h-4 w-4" />}
+                flash={flashCard === 'verified_fixes'}
+                highlight
+              />
+            </div>
           </>
         ) : null}
       </div>
