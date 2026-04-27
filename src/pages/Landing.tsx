@@ -2,8 +2,8 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Zap, GitBranch, Search, GitPullRequest, CheckCircle2,
-  ArrowRight, Shield, Brain, Code2, Cpu, ChevronRight,
-  TrendingUp, Clock,
+  ArrowRight, Brain, Code2, Cpu, ChevronRight,
+  Clock,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
@@ -34,14 +34,6 @@ export default function Landing() {
       borderHover: 'hover:border-blue-500/50',
     },
     {
-      icon: Brain,
-      title: 'Pattern Learning',
-      description: 'Learns from every run across your codebase to continuously improve diagnosis.',
-      badge: 'Continuous',
-      color: 'from-indigo-500/20 to-transparent',
-      borderHover: 'hover:border-indigo-500/50',
-    },
-    {
       icon: CheckCircle2,
       title: 'PR Verification',
       description: 'Runs the full CI pipeline on every fix before marking it verified and complete.',
@@ -49,22 +41,14 @@ export default function Landing() {
       color: 'from-purple-500/20 to-transparent',
       borderHover: 'hover:border-purple-500/50',
     },
-    {
-      icon: Shield,
-      title: 'Security Scanning',
-      description: 'Detects vulnerabilities introduced during CI and flags them before they ship.',
-      badge: 'Proactive',
-      color: 'from-rose-500/20 to-transparent',
-      borderHover: 'hover:border-rose-500/50',
-    },
   ]
 
   const steps = [
-    { icon: GitBranch, label: 'Install GitHub App', sub: '30 seconds' },
-    { icon: Search, label: 'Failure detected', sub: 'Real-time' },
-    { icon: Brain, label: 'Root cause found', sub: 'Seconds' },
-    { icon: GitPullRequest, label: 'PR auto-created', sub: 'Automatic' },
-    { icon: CheckCircle2, label: 'CI verified', sub: 'All tests pass' },
+    { icon: GitBranch, label: 'Push to main', sub: '00:00' },
+    { icon: Search, label: 'CI fails', sub: '00:12' },
+    { icon: Brain, label: 'Diagnosed', sub: '00:34' },
+    { icon: GitPullRequest, label: 'PR opened', sub: '01:08' },
+    { icon: CheckCircle2, label: 'CI green', sub: '02:15' },
   ]
 
   return (
@@ -124,15 +108,15 @@ export default function Landing() {
           </div>
 
           <h1 className="text-6xl md:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
-            Your AI DevOps
+            Your CI fails.
             <br />
             <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
-              Team Never Sleeps.
+              We fix it. You merge.
             </span>
           </h1>
 
           <p className="text-xl text-zinc-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Prash automatically detects CI failures, diagnoses root causes, creates fixes, and verifies they work—all without human intervention.
+            Prash by Drufiy watches your GitHub Actions. When a build breaks, it diagnoses the root cause, opens a PR with the fix, and verifies CI passes — usually before you've finished your coffee.
           </p>
 
           <p className="text-sm text-zinc-500 mb-8">Currently in early access — onboarding design partners.</p>
@@ -216,11 +200,11 @@ export default function Landing() {
             <p className="text-violet-400 text-sm font-medium uppercase tracking-widest mb-3">Specialized agents</p>
             <h2 className="text-4xl font-bold mb-4 tracking-tight">A team built for reliability</h2>
             <p className="text-zinc-400 max-w-2xl mx-auto text-lg">
-              Five specialized agents working in concert to keep your CI reliable, fast, and secure.
+              Three specialized agents working in concert to keep your CI reliable, fast, and secure.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid md:grid-cols-3 lg:grid-cols-3 gap-4">
             {agents.map((agent, idx) => {
               const Icon = agent.icon
               return (
@@ -306,7 +290,7 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
                 icon: Clock,
@@ -317,16 +301,6 @@ export default function Landing() {
                 icon: Code2,
                 title: 'Automated fixes',
                 desc: 'Fixes are generated and validated through your full CI pipeline — no rubber stamp reviews.',
-              },
-              {
-                icon: TrendingUp,
-                title: 'Learns & improves',
-                desc: 'Prash learns from every run across your org to get smarter and more accurate over time.',
-              },
-              {
-                icon: Shield,
-                title: 'Enterprise security',
-                desc: 'Minimal GitHub App permissions. Your code stays in your environment. We only read CI logs and workflow definitions.',
               },
               {
                 icon: Cpu,
@@ -361,11 +335,10 @@ export default function Landing() {
           <div className="relative">
             <p className="text-violet-400 text-sm font-medium uppercase tracking-widest mb-4">Get started today</p>
             <h2 className="text-5xl font-bold mb-6 tracking-tight leading-tight">
-              Ready to fix CI failures
-              <br />automatically?
+              Stop debugging CI.
             </h2>
             <p className="text-zinc-400 text-lg mb-10 leading-relaxed">
-              Get started in 5 minutes. First fix within hours. No credit card required.
+              Install the GitHub App in 30 seconds. We're onboarding design partners now.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button
