@@ -304,9 +304,11 @@ export default function RunDetail() {
   }
 
   const d = run.diagnosis
-  const { label, className } = statusBadge(run.status)
+  const { label, className } = statusBadge(run.status, d?.fix_type)
   const canApply = d && !['manual_required'].includes(d.fix_type) && !d.is_flaky_test
-  const isTerminal = ['verified', 'diagnosis_failed', 'exhausted', 'skipped'].includes(run.status)
+  // 'diagnosed' is terminal when the model has decided it can't auto-fix (manual_required or flaky)
+  const isDiagnosedTerminal = run.status === 'diagnosed' && d && (d.fix_type === 'manual_required' || d.is_flaky_test)
+  const isTerminal = ['verified', 'diagnosis_failed', 'exhausted', 'skipped'].includes(run.status) || !!isDiagnosedTerminal
   const isApplied = ['fixed', 'waiting_verification', 'verified'].includes(run.status)
 
   return (
@@ -357,6 +359,26 @@ export default function RunDetail() {
           <Loader2 className="h-4 w-4 text-amber-400 animate-spin" />
           <AlertDescription className="text-amber-400">
             Initial fix didn't pass CI. Prash is running a second analysis…
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Diagnosed + manual_required — clear terminal state banner */}
+      {run.status === 'diagnosed' && d?.fix_type === 'manual_required' && (
+        <Alert className="mb-6 border-orange-800 bg-orange-950/20">
+          <AlertTriangle className="h-4 w-4 text-orange-400" />
+          <AlertDescription className="text-orange-300">
+            Prash diagnosed the issue but can't safely auto-fix it. Review the diagnosis below and apply the fix manually.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Diagnosed + review_recommended — show fix with action buttons */}
+      {run.status === 'diagnosed' && d?.fix_type === 'review_recommended' && (
+        <Alert className="mb-6 border-violet-800 bg-violet-950/20">
+          <Info className="h-4 w-4 text-violet-400" />
+          <AlertDescription className="text-violet-300">
+            Prash has a proposed fix ready for your review. Check the diff below before applying.
           </AlertDescription>
         </Alert>
       )}
@@ -543,9 +565,7 @@ export default function RunDetail() {
                 )}
               </div>
             </div>
-          ) : d.fix_type === 'manual_required' || d.is_flaky_test ? (
-            <p className="text-zinc-500 text-sm">Manual review required — no auto-fix available.</p>
-          ) : (
+          ) : isDiagnosedTerminal ? null : (
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"
