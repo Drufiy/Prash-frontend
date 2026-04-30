@@ -404,8 +404,8 @@ export default function Landing() {
               </ul>
             </div>
           </div>
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-zinc-600">
-            <p>© 2026 Drufiy, Inc. All rights reserved.</p>
+          <div className="flex flex-col items-center justify-center gap-4 text-xs text-zinc-600">
+            <p>By Drufiy AI Pvt Ltd</p>
           </div>
         </div>
       </footer>

@@ -126,13 +126,13 @@ export default function HowItWorks() {
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 antialiased">
       <div className="fixed inset-0 bg-grid-pattern opacity-[0.03] pointer-events-none" />
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-violet-600/8 blur-[100px] pointer-events-none rounded-full" />
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-amber-500/8 blur-[100px] pointer-events-none rounded-full" />
 
       {/* Nav */}
       <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#09090b]/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <button onClick={() => navigate('/')} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="w-7 h-7 rounded-md bg-violet-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-md bg-amber-500 flex items-center justify-center">
               <Zap className="h-4 w-4 text-white" />
             </div>
             <span className="font-semibold text-base tracking-tight">Prash</span>
@@ -149,7 +149,7 @@ export default function HowItWorks() {
             </button>
             <Button
               size="sm"
-              className="bg-violet-600 hover:bg-violet-500 text-white rounded-lg px-4 h-8 text-sm font-medium"
+              className="bg-amber-500 hover:bg-amber-400 text-white rounded-lg px-4 h-8 text-sm font-medium"
               onClick={() => navigate('/login')}
             >
               Get started
@@ -162,14 +162,14 @@ export default function HowItWorks() {
       {/* Hero */}
       <section className="relative px-6 pt-24 pb-20 text-center">
         <div className="max-w-4xl mx-auto relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-violet-500/20 bg-violet-500/10 text-violet-300 text-xs mb-8 font-medium">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-400/20 bg-amber-400/10 text-amber-200 text-xs mb-8 font-medium">
             <Zap className="h-3 w-3" />
             Deep dive
           </div>
           <h1 className="text-6xl font-bold tracking-tight leading-tight mb-6">
             From failure to fix
             <br />
-            <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-amber-300 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
               in minutes.
             </span>
           </h1>
@@ -188,13 +188,13 @@ export default function HowItWorks() {
               {architecture.map(({ icon: Icon, label, desc }, idx) => (
                 <div key={idx} className="flex md:flex-col items-center gap-3 flex-1">
                   <div className="relative">
-                    <div className="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-violet-400" />
+                    <div className="w-12 h-12 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-amber-300" />
                     </div>
                     {idx < architecture.length - 1 && (
                       <div className="hidden md:flex absolute top-1/2 left-full ml-2 -translate-y-1/2 items-center gap-1 w-full">
-                        <div className="flex-1 h-px bg-gradient-to-r from-violet-500/30 to-transparent" />
-                        <ArrowRight className="w-3 h-3 text-violet-500/30 absolute right-0" />
+                        <div className="flex-1 h-px bg-gradient-to-r from-amber-400/30 to-transparent" />
+                        <ArrowRight className="w-3 h-3 text-amber-400/30 absolute right-0" />
                       </div>
                     )}
                   </div>
@@ -218,24 +218,24 @@ export default function HowItWorks() {
           {steps.map((step, idx) => {
             const Icon = step.icon
             return (
-              <div key={idx} className="group rounded-2xl border border-white/8 bg-white/[0.02] hover:border-violet-500/20 hover:bg-white/[0.04] transition-all duration-300 overflow-hidden">
+              <div key={idx} className="group rounded-2xl border border-white/8 bg-white/[0.02] hover:border-amber-400/20 hover:bg-white/[0.04] transition-all duration-300 overflow-hidden">
                 <div className="grid md:grid-cols-[1fr_340px] gap-0">
                   {/* Content */}
                   <div className="p-8 md:p-10">
                     <div className="flex items-start gap-5">
-                      <div className="shrink-0 w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-                        <Icon className="w-5 h-5 text-violet-400" />
+                      <div className="shrink-0 w-12 h-12 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center">
+                        <Icon className="w-5 h-5 text-amber-300" />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
-                          <span className="text-xs font-mono text-violet-400/50">{step.number}</span>
+                          <span className="text-xs font-mono text-amber-300/50">{step.number}</span>
                           <h2 className="text-xl font-bold text-zinc-100">{step.title}</h2>
                         </div>
                         <p className="text-zinc-400 leading-relaxed mb-6 text-sm md:text-base">{step.description}</p>
                         <ul className="space-y-2">
                           {step.details.map((detail, i) => (
                             <li key={i} className="flex items-start gap-2.5 text-sm text-zinc-500">
-                              <CheckCircle2 className="w-4 h-4 text-violet-400/60 mt-0.5 shrink-0" />
+                              <CheckCircle2 className="w-4 h-4 text-amber-300/60 mt-0.5 shrink-0" />
                               {detail}
                             </li>
                           ))}
@@ -249,13 +249,13 @@ export default function HowItWorks() {
                     {step.visual.map((block, i) => (
                       <div key={i} className="w-full">
                         <div className="flex items-center gap-2 mb-3">
-                          <div className="w-2 h-2 rounded-full bg-violet-500" />
+                          <div className="w-2 h-2 rounded-full bg-amber-400" />
                           <span className="text-xs text-zinc-600 font-mono uppercase tracking-wider">{block.label}</span>
                         </div>
                         <div className="space-y-1.5">
                           {block.items.map((item, j) => (
                             <div key={j} className="flex items-center gap-2 text-xs font-mono text-zinc-400 bg-white/[0.03] border border-white/5 rounded-lg px-3 py-2">
-                              <span className="text-violet-400/50">›</span>
+                              <span className="text-amber-300/50">›</span>
                               {item}
                             </div>
                           ))}
@@ -280,7 +280,7 @@ export default function HowItWorks() {
       <section className="px-6 py-24 border-b border-white/5 bg-white/[0.015]">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-violet-400 text-sm font-medium uppercase tracking-widest mb-3">Capabilities</p>
+            <p className="text-amber-300 text-sm font-medium uppercase tracking-widest mb-3">Capabilities</p>
             <h2 className="text-4xl font-bold mb-4 tracking-tight">Why Prash is different</h2>
             <p className="text-zinc-400 text-lg">Fast, accurate, and built to integrate with your existing workflow</p>
           </div>
@@ -318,9 +318,9 @@ export default function HowItWorks() {
                 desc: 'Every diagnosis, fix attempt, and verification is logged and accessible in the Prash dashboard.',
               },
             ].map(({ icon: Icon, title, desc }, idx) => (
-              <div key={idx} className="p-6 rounded-2xl border border-white/5 bg-white/[0.02] hover:border-violet-500/20 hover:bg-white/[0.04] transition-all">
-                <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mb-4">
-                  <Icon className="w-5 h-5 text-violet-400" />
+              <div key={idx} className="p-6 rounded-2xl border border-white/5 bg-white/[0.02] hover:border-amber-400/20 hover:bg-white/[0.04] transition-all">
+                <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center mb-4">
+                  <Icon className="w-5 h-5 text-amber-300" />
                 </div>
                 <h3 className="font-semibold text-zinc-100 mb-2">{title}</h3>
                 <p className="text-sm text-zinc-500 leading-relaxed">{desc}</p>
@@ -334,7 +334,7 @@ export default function HowItWorks() {
       <section className="px-6 py-24 border-b border-white/5">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-violet-400 text-sm font-medium uppercase tracking-widest mb-3">FAQ</p>
+            <p className="text-amber-300 text-sm font-medium uppercase tracking-widest mb-3">FAQ</p>
             <h2 className="text-4xl font-bold mb-4 tracking-tight">Common questions</h2>
           </div>
 
@@ -342,8 +342,8 @@ export default function HowItWorks() {
             {faqs.map(({ q, a }, idx) => (
               <div key={idx} className="p-6 rounded-2xl border border-white/8 bg-white/[0.02] hover:border-white/12 transition-colors">
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-[10px] text-violet-400 font-bold">Q</span>
+                  <div className="w-5 h-5 rounded-full bg-amber-400/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-[10px] text-amber-300 font-bold">Q</span>
                   </div>
                   <h3 className="font-semibold text-zinc-100 text-sm">{q}</h3>
                 </div>
@@ -357,9 +357,9 @@ export default function HowItWorks() {
       {/* CTA */}
       <section className="px-6 py-28">
         <div className="max-w-3xl mx-auto text-center relative">
-          <div className="absolute inset-0 bg-violet-600/5 blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute inset-0 bg-amber-500/5 blur-3xl rounded-full pointer-events-none" />
           <div className="relative">
-            <p className="text-violet-400 text-sm font-medium uppercase tracking-widest mb-4">Ready to start?</p>
+            <p className="text-amber-300 text-sm font-medium uppercase tracking-widest mb-4">Ready to start?</p>
             <h2 className="text-5xl font-bold mb-6 tracking-tight leading-tight">
               Fix CI failures
               <br />automatically.
@@ -370,7 +370,7 @@ export default function HowItWorks() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button
                 size="lg"
-                className="bg-violet-600 hover:bg-violet-500 text-white px-10 h-12 text-base rounded-xl shadow-lg shadow-violet-600/25 transition-all"
+                className="bg-amber-500 hover:bg-amber-400 text-white px-10 h-12 text-base rounded-xl shadow-lg shadow-amber-500/25 transition-all"
                 onClick={() => navigate('/login')}
               >
                 Install GitHub App
@@ -391,13 +391,8 @@ export default function HowItWorks() {
 
       {/* Footer */}
       <footer className="border-t border-white/5 bg-white/[0.02] px-6 py-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-zinc-600">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded bg-violet-600 flex items-center justify-center">
-              <Zap className="h-3 w-3 text-white" />
-            </div>
-            <span>© 2026 Drufiy, Inc.</span>
-          </div>
+        <div className="max-w-7xl mx-auto flex flex-col items-center justify-center gap-4 text-xs text-zinc-600">
+          <p>By Drufiy AI Pvt Ltd</p>
         </div>
       </footer>
     </div>
