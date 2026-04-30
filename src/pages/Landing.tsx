@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 }
 
 const stagger = {
@@ -135,10 +135,10 @@ export default function Landing() {
             variants={fadeUp}
             className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.05] mb-6"
           >
-            <span className="font-bold text-white">Prash.</span> Your CI fails.
-            <br />
+            <span className="font-bold text-white">Prash.</span> When your Your CI fails,
+      <br />
             <span className="text-yellow-400">
-              We fix it. You merge.
+              We fix it and all You do is merge!
             </span>
           </motion.h1>
 
@@ -146,7 +146,7 @@ export default function Landing() {
             Prash by Drufiy watches your GitHub Actions. When a build breaks, it diagnoses the root cause, opens a PR with the fix, and verifies CI passes — usually before you've finished your coffee.
           </motion.p>
 
-          <motion.p variants={fadeUp} className="text-sm text-zinc-600 mb-8">Currently in early access — onboarding design partners.</motion.p>
+          <motion.p variants={fadeUp} className="text-sm text-zinc-600 mb-8">Early access is live now</motion.p>
 
           <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10 sm:mb-12">
             <Button

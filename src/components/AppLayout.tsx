@@ -4,7 +4,6 @@ import {
   GitBranch,
   XCircle,
   History,
-  Zap,
   LogOut,
   X,
 } from 'lucide-react'
