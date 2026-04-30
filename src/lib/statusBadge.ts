@@ -18,7 +18,7 @@ export function statusBadge(status: string, fixType?: string | null): { label: s
     case 'waiting_verification':
       return { label: 'Verifying…', className: 'border-amber-700 text-amber-400' }
     case 'verified':
-      return { label: 'Verified ✓', className: 'border-emerald-700 text-emerald-400' }
+      return { label: 'Verified', className: 'border-emerald-700 text-emerald-400' }
     case 'iteration_2':
       return { label: 'Retrying…', className: 'border-orange-700 text-orange-400' }
     case 'diagnosis_failed':
