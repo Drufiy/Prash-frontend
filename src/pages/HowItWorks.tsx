@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import {
-  Zap, GitBranch, GitPullRequest, CheckCircle2,
+  GitBranch, GitPullRequest, CheckCircle2,
   ArrowRight, Shield, Brain, Clock, ChevronRight,
   Webhook, FileText, Cpu, AlertCircle, GitMerge,
 } from 'lucide-react'
