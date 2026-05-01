@@ -1,7 +1,17 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import { AuthProvider } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AppLayout from '@/components/AppLayout'
+import { posthog } from '@/lib/posthog'
+
+function PostHogPageTracker() {
+  const location = useLocation()
+  useEffect(() => {
+    posthog.capture('$pageview', { $current_url: window.location.href })
+  }, [location.pathname])
+  return null
+}
 
 import Landing from '@/pages/Landing'
 import HowItWorks from '@/pages/HowItWorks'
@@ -18,6 +28,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <PostHogPageTracker />
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Landing />} />

@@ -21,6 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
+import { posthog } from '@/lib/posthog'
 
 // ── Scope check ───────────────────────────────────────────────────────────────
 
@@ -158,6 +159,20 @@ export default function Dashboard() {
     queryFn: () => api('/runs/history?limit=5'),
     refetchInterval: 30_000,
   })
+
+  // ── Analytics: fire once when stats load ─────────────────────────────────
+  const trackedVisit = useRef(false)
+  useEffect(() => {
+    if (stats && !trackedVisit.current) {
+      trackedVisit.current = true
+      posthog.capture('dashboard_visited', {
+        repos_connected: stats.repos_connected,
+        failures_diagnosed: stats.failures_diagnosed,
+        verified_fixes: stats.verified_fixes,
+        prs_created: stats.prs_created,
+      })
+    }
+  }, [stats])
 
   // ── Realtime subscription ──────────────────────────────────────────────────
   useEffect(() => {

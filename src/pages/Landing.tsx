@@ -9,6 +9,7 @@ import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
+import { posthog } from '@/lib/posthog'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -161,7 +162,7 @@ export default function Landing() {
               variant="ghost"
               size="lg"
               className="w-full sm:w-auto text-zinc-300 hover:text-white hover:bg-white/5 px-8 h-12 text-base rounded-xl border border-white/10"
-              onClick={() => { window.location.href = '/dashboard?demo=true' }}
+              onClick={() => { posthog.capture('demo_viewed', { source: 'hero_cta' }); window.location.href = '/dashboard?demo=true' }}
             >
               View live demo
             </Button>

@@ -37,6 +37,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { statusBadge, POLLING_STATUSES } from '@/lib/statusBadge'
+import { posthog } from '@/lib/posthog'
+import { useEffect, useRef } from 'react'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -399,7 +401,10 @@ function ManualActionCard({ runId, diagnosis, onActionComplete }: ManualActionCa
           variant="outline"
           className="border-zinc-700 text-zinc-400 hover:bg-zinc-800"
           disabled={rediagnose.isPending}
-          onClick={() => rediagnose.mutate()}
+          onClick={() => {
+            posthog.capture('rediagnose_clicked', { run_id: runId, category, fix_type: diagnosis.fix_type })
+            rediagnose.mutate()
+          }}
         >
           {rediagnose.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <RefreshCw className="h-3.5 w-3.5 mr-1.5" />}
           Re-diagnose
@@ -493,6 +498,8 @@ export default function RunDetail() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const [dryRunResult, setDryRunResult] = useState<DryRunResult | null>(null)
+  const trackedView = useRef(false)
+  const trackedManual = useRef(false)
 
   const { data: run, isLoading, isError } = useQuery<RunDetail>({
     queryKey: ['run', id],
@@ -500,6 +507,32 @@ export default function RunDetail() {
     refetchInterval: (query) =>
       POLLING_STATUSES.has(query.state.data?.status ?? '') ? 4000 : false,
   })
+
+  // run_detail_viewed — fires once when run data loads
+  useEffect(() => {
+    if (run && !trackedView.current) {
+      trackedView.current = true
+      posthog.capture('run_detail_viewed', {
+        run_id: run.id,
+        status: run.status,
+        repo: run.repo_full_name,
+        fix_type: run.diagnosis?.fix_type ?? null,
+      })
+    }
+  }, [run])
+
+  // manual_fix_required_seen — fires once when user sees a manual_required diagnosis
+  useEffect(() => {
+    if (run?.diagnosis?.fix_type === 'manual_required' && !trackedManual.current) {
+      trackedManual.current = true
+      posthog.capture('manual_fix_required_seen', {
+        run_id: run.id,
+        repo: run.repo_full_name,
+        category: run.diagnosis.category,
+        problem_summary: run.diagnosis.problem_summary,
+      })
+    }
+  }, [run])
 
   const dryRunMutation = useMutation({
     mutationFn: () => api<DryRunResult>(`/runs/${id}/dry-run`, { method: 'POST' }),
@@ -511,6 +544,12 @@ export default function RunDetail() {
     mutationFn: () => api(`/runs/${id}/apply-fix`, { method: 'POST' }),
     onSuccess: (data: unknown) => {
       const result = data as { pr_url: string; pr_number: number }
+      posthog.capture('fix_applied', {
+        run_id: id,
+        pr_number: result.pr_number,
+        repo: run?.repo_full_name,
+        fix_type: run?.diagnosis?.fix_type,
+      })
       toast.success(`PR #${result.pr_number} created!`, {
         action: { label: 'View PR', onClick: () => window.open(result.pr_url, '_blank') },
       })
