@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { Skeleton } from '@/components/ui/skeleton'
+import { posthog } from '@/lib/posthog'
 
 interface CallbackResponse {
   token: string
@@ -34,6 +35,14 @@ export default function AuthCallback() {
     })
       .then(({ token, user }) => {
         login(token, user)
+        // Identify the user in PostHog so all future events are tied to them
+        posthog.identify(user.id, {
+          github_username: user.github_username,
+          email: user.email ?? undefined,
+        })
+        posthog.capture('signup_completed', {
+          github_username: user.github_username,
+        })
         navigate('/dashboard', { replace: true })
       })
       .catch(() => {

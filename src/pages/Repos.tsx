@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
 import { GitBranch, Plus, MoreHorizontal, Unplug, Search, Lock } from 'lucide-react'
 import { toast } from 'sonner'
+import { posthog } from '@/lib/posthog'
 import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -134,9 +135,13 @@ function ConnectRepoDialog({
           default_branch: repo.default_branch,
         }),
       }),
-    onSuccess: () => {
+    onSuccess: (_data, repo) => {
       toast.success('Repo connected — webhook installed.')
       qc.invalidateQueries({ queryKey: ['connected-repos'] })
+      posthog.capture('repo_connected', {
+        repo_name: repo.full_name,
+        is_private: repo.private,
+      })
       onConnected()
       onClose()
     },
