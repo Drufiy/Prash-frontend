@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
+import { posthog } from '@/lib/posthog'
 
 function GitHubIcon() {
   return (
@@ -56,7 +57,12 @@ export default function Login() {
             className="w-full bg-zinc-100 text-zinc-900 hover:bg-white gap-2"
             asChild
           >
-            <a href={githubUrl}>
+            <a
+              href={githubUrl}
+              onClick={() => posthog.capture('github_login_clicked', {
+                source: 'login_page',
+              })}
+            >
               <GitHubIcon />
               Continue with GitHub
             </a>
