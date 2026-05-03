@@ -1,4 +1,6 @@
 export function isDemoMode(): boolean {
+  // Demo mode is DEV-ONLY — never active in production builds
+  if (import.meta.env.PROD) return false
   if (typeof window === 'undefined') return false
   const urlFlag = new URLSearchParams(window.location.search).get('demo') === 'true'
   if (urlFlag) localStorage.setItem('drufiy_demo', '1')

@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   GitBranch, Search, GitPullRequest, CheckCircle2,
-  ArrowRight, Brain, Code2, Cpu, ChevronRight,
+  ArrowRight, Code2, Cpu, ChevronRight,
   Clock,
 } from 'lucide-react'
 import { motion, useInView } from 'framer-motion'
@@ -10,6 +10,7 @@ import { useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 import { posthog } from '@/lib/posthog'
+import CILogSimulation from '@/components/CILogSimulation'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -70,14 +71,6 @@ export default function Landing() {
       color: 'from-yellow-300/20 to-transparent',
       borderHover: 'hover:border-yellow-300/50',
     },
-  ]
-
-  const steps = [
-    { icon: GitBranch, label: 'Push to main', sub: '00:00' },
-    { icon: Search, label: 'CI fails', sub: '00:12' },
-    { icon: Brain, label: 'Diagnosed', sub: '00:34' },
-    { icon: GitPullRequest, label: 'PR opened', sub: '01:08' },
-    { icon: CheckCircle2, label: 'CI green', sub: '02:15' },
   ]
 
   return (
@@ -180,51 +173,15 @@ export default function Landing() {
           </motion.div>
         </motion.div>
 
-        {/* Hero visual — pipeline flow */}
-        <div className="mt-16 sm:mt-20 max-w-4xl mx-auto relative z-10">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur p-1">
-            <div className="rounded-xl bg-zinc-950 p-4 sm:p-6 md:p-8">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                {steps.map((step, idx) => {
-                  const Icon = step.icon
-                  return (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.6 + idx * 0.12, duration: 0.4, ease: 'easeOut' }}
-                      className="flex sm:flex-col items-center gap-3 flex-1 w-full sm:w-auto"
-                    >
-                      <div className="relative">
-                        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center border ${
-                          idx === 0 ? 'border-yellow-500/50 bg-yellow-500/10' :
-                          idx === steps.length - 1 ? 'border-emerald-500/50 bg-emerald-500/10' :
-                          'border-white/10 bg-white/5'
-                        }`}>
-                          <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                            idx === 0 ? 'text-yellow-400' :
-                            idx === steps.length - 1 ? 'text-emerald-400' :
-                            'text-zinc-400'
-                          }`} />
-                        </div>
-                        {idx < steps.length - 1 && (
-                          <div className="hidden md:block absolute top-1/2 left-full w-full h-px bg-gradient-to-r from-white/10 to-transparent -translate-y-1/2 ml-2" />
-                        )}
-                      </div>
-                      <div className="text-left sm:text-center">
-                        <div className="text-xs font-medium text-zinc-300">{step.label}</div>
-                        <div className="text-xs text-zinc-600 mt-0.5">{step.sub}</div>
-                      </div>
-                      {idx < steps.length - 1 && (
-                        <ArrowRight className="sm:hidden h-4 w-4 text-zinc-600 shrink-0 ml-auto" />
-                      )}
-                    </motion.div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Hero visual — CI log simulation */}
+        <motion.div
+          className="mt-16 sm:mt-20 max-w-3xl mx-auto relative z-10"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+        >
+          <CILogSimulation />
+        </motion.div>
       </section>
 
       {/* Agents */}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useRef } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
@@ -38,7 +39,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { statusBadge, POLLING_STATUSES } from '@/lib/statusBadge'
 import { posthog } from '@/lib/posthog'
-import { useEffect, useRef } from 'react'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -56,6 +56,11 @@ interface FileChange {
   }
 }
 
+interface RequiredSecret {
+  name: string
+  description: string
+}
+
 interface Diagnosis {
   id: string
   iteration: number
@@ -67,11 +72,19 @@ interface Diagnosis {
   is_flaky_test: boolean
   category: string
   logs_truncated_warning: boolean
+  // Backend returns list[str] — frontend normalizes to objects for display
+  required_secrets: (RequiredSecret | string)[]
   files_changed: FileChange[]
   github_pr_url: string | null
   github_pr_number: number | null
   verification_status: string | null
   created_at: string
+}
+
+/** Normalize backend string[] or object[] to { name, description } for display */
+function normalizeSecret(s: RequiredSecret | string): RequiredSecret {
+  if (typeof s === 'string') return { name: s, description: '' }
+  return s
 }
 
 interface RunDetail {
@@ -84,9 +97,21 @@ interface RunDetail {
   commit_message: string
   fix_branch_name: string | null
   error_message: string | null
+  logs_url: string | null
   created_at: string
   updated_at: string
   diagnosis: Diagnosis | null
+}
+
+interface LogsResponse {
+  logs: string
+}
+
+interface Message {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  created_at: string
 }
 
 interface DiffPreviewFile {
@@ -262,16 +287,30 @@ function DryRunDialog({
 interface ManualActionCardProps {
   runId: string
   diagnosis: Diagnosis
+  repoFullName: string
   onActionComplete: () => void
 }
 
-function ManualActionCard({ runId, diagnosis, onActionComplete }: ManualActionCardProps) {
+function ManualActionCard({ runId, diagnosis, repoFullName, onActionComplete }: ManualActionCardProps) {
   const [secretName, setSecretName] = useState('')
   const [secretValue, setSecretValue] = useState('')
   const [showSecretForm, setShowSecretForm] = useState(false)
   const [skipDialogOpen, setSkipDialogOpen] = useState(false)
   const [skipTestName, setSkipTestName] = useState('')
   const [skipTestFile, setSkipTestFile] = useState('')
+
+  const category = diagnosis.category
+  const rawSecrets = diagnosis.required_secrets ?? []
+  const hasRequiredSecrets = rawSecrets.length > 0
+  const [selectedSecretIndex, setSelectedSecretIndex] = useState(0)
+
+  // Auto-show secret form if required_secrets are provided
+  useEffect(() => {
+    if (hasRequiredSecrets) {
+      setShowSecretForm(true)
+      setSecretName(normalizeSecret(rawSecrets[0]).name)
+    }
+  }, [hasRequiredSecrets]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Extract test name from problem_summary heuristically
   const inferredTestName = (() => {
@@ -329,8 +368,6 @@ function ManualActionCard({ runId, diagnosis, onActionComplete }: ManualActionCa
     onError: (e: Error) => toast.error(e.message),
   })
 
-  const category = diagnosis.category
-
   return (
     <div className="bg-zinc-900 border border-orange-900/50 rounded-xl p-5 space-y-4">
       <div className="flex items-center gap-2">
@@ -372,8 +409,8 @@ function ManualActionCard({ runId, diagnosis, onActionComplete }: ManualActionCa
           </Button>
         )}
 
-        {/* Add secret: for environment issues */}
-        {category === 'environment' && (
+        {/* Add secret: for environment issues OR when required_secrets provided */}
+        {(category === 'environment' || hasRequiredSecrets) && (
           <Button
             size="sm"
             variant="outline"
@@ -381,14 +418,14 @@ function ManualActionCard({ runId, diagnosis, onActionComplete }: ManualActionCa
             onClick={() => setShowSecretForm(!showSecretForm)}
           >
             <Lock className="h-3.5 w-3.5 mr-1.5" />
-            Add Secret
+            {hasRequiredSecrets ? `Add Secret (${rawSecrets.length})` : 'Add Secret'}
           </Button>
         )}
 
         {/* Open in GitHub: for unknown/database */}
         {(category === 'unknown' || category === 'database_migration') && (
           <Button size="sm" variant="outline" className="border-zinc-700 text-zinc-300" asChild>
-            <a href={`https://github.com`} target="_blank" rel="noreferrer">
+            <a href={`https://github.com/${repoFullName}`} target="_blank" rel="noreferrer">
               <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
               Open in GitHub
             </a>
@@ -414,32 +451,108 @@ function ManualActionCard({ runId, diagnosis, onActionComplete }: ManualActionCa
       {/* Add Secret inline form */}
       {showSecretForm && (
         <div className="border border-zinc-700 rounded-lg p-4 space-y-3 bg-zinc-950/50">
-          <p className="text-zinc-400 text-xs">
-            This will add the secret to your GitHub repo's Actions secrets and re-trigger the failed workflow.
-          </p>
-          <div className="flex gap-2">
-            <Input
-              placeholder="SECRET_NAME"
-              value={secretName}
-              onChange={(e) => setSecretName(e.target.value)}
-              className="bg-zinc-900 border-zinc-700 text-zinc-100 font-mono text-sm h-8"
-            />
-            <Input
-              type="password"
-              placeholder="secret value"
-              value={secretValue}
-              onChange={(e) => setSecretValue(e.target.value)}
-              className="bg-zinc-900 border-zinc-700 text-zinc-100 text-sm h-8"
-            />
-            <Button
-              size="sm"
-              className="bg-amber-600 hover:bg-amber-500 text-white shrink-0"
-              disabled={!secretName || !secretValue || addSecret.isPending}
-              onClick={() => addSecret.mutate()}
-            >
-              {addSecret.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Add'}
-            </Button>
-          </div>
+          {hasRequiredSecrets ? (
+            // Required secrets provided — show structured form
+            <div className="space-y-3">
+              <p className="text-zinc-400 text-xs">
+                Add the required secrets to your GitHub repo. The workflow will re-trigger automatically.
+              </p>
+
+              {/* Secret selector if multiple */}
+              {rawSecrets.length > 1 && (
+                <div className="flex gap-2 flex-wrap">
+                  {rawSecrets.map((secret, idx) => {
+                    const s = normalizeSecret(secret)
+                    return (
+                      <Button
+                        key={s.name}
+                        size="sm"
+                        variant={selectedSecretIndex === idx ? 'default' : 'outline'}
+                        className={selectedSecretIndex === idx
+                          ? 'bg-amber-600 hover:bg-amber-500 text-white'
+                          : 'border-zinc-700 text-zinc-400'
+                        }
+                        onClick={() => {
+                          setSelectedSecretIndex(idx)
+                          setSecretName(s.name)
+                          setSecretValue('')
+                        }}
+                      >
+                        {s.name}
+                      </Button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Current secret description */}
+              {(() => {
+                const s = normalizeSecret(rawSecrets[selectedSecretIndex])
+                return (
+                  <div className="bg-zinc-900/50 rounded p-3">
+                    <p className="text-zinc-300 text-sm font-mono">{s.name}</p>
+                    {s.description && <p className="text-zinc-500 text-xs mt-1">{s.description}</p>}
+                  </div>
+                )
+              })()}
+
+              <div className="flex gap-2">
+                <Input
+                  type="password"
+                  placeholder={`Enter value for ${normalizeSecret(rawSecrets[selectedSecretIndex]).name}`}
+                  value={secretValue}
+                  onChange={(e) => setSecretValue(e.target.value)}
+                  className="bg-zinc-900 border-zinc-700 text-zinc-100 text-sm h-9 flex-1"
+                  autoFocus
+                />
+                <Button
+                  size="sm"
+                  className="bg-amber-600 hover:bg-amber-500 text-white shrink-0 h-9"
+                  disabled={!secretValue || addSecret.isPending}
+                  onClick={() => addSecret.mutate()}
+                >
+                  {addSecret.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Add Secret'}
+                </Button>
+              </div>
+
+              {/* Progress indicator */}
+              {rawSecrets.length > 1 && (
+                <p className="text-zinc-500 text-xs">
+                  Secret {selectedSecretIndex + 1} of {rawSecrets.length}
+                </p>
+              )}
+            </div>
+          ) : (
+            // No required secrets — show generic form
+            <>
+              <p className="text-zinc-400 text-xs">
+                This will add the secret to your GitHub repo's Actions secrets and re-trigger the failed workflow.
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="SECRET_NAME"
+                  value={secretName}
+                  onChange={(e) => setSecretName(e.target.value)}
+                  className="bg-zinc-900 border-zinc-700 text-zinc-100 font-mono text-sm h-8"
+                />
+                <Input
+                  type="password"
+                  placeholder="secret value"
+                  value={secretValue}
+                  onChange={(e) => setSecretValue(e.target.value)}
+                  className="bg-zinc-900 border-zinc-700 text-zinc-100 text-sm h-8"
+                />
+                <Button
+                  size="sm"
+                  className="bg-amber-600 hover:bg-amber-500 text-white shrink-0"
+                  disabled={!secretName || !secretValue || addSecret.isPending}
+                  onClick={() => addSecret.mutate()}
+                >
+                  {addSecret.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Add'}
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -491,6 +604,47 @@ function ManualActionCard({ runId, diagnosis, onActionComplete }: ManualActionCa
   )
 }
 
+// ── Chat fallback response generator ─────────────────────────────────────────
+
+function generateFallbackResponse(message: string, diagnosis: Diagnosis | null | undefined): string {
+  const lowerMsg = message.toLowerCase()
+
+  if (!diagnosis) {
+    return "I'm still analyzing this CI run. Please wait a moment for the diagnosis to complete."
+  }
+
+  if (lowerMsg.includes('what went wrong') || lowerMsg.includes('problem')) {
+    return `**Problem:** ${diagnosis.problem_summary}\n\n**Category:** ${diagnosis.category}`
+  }
+
+  if (lowerMsg.includes('root cause') || lowerMsg.includes('why')) {
+    return `**Root Cause:** ${diagnosis.root_cause}`
+  }
+
+  if (lowerMsg.includes('fix') || lowerMsg.includes('solution')) {
+    if (diagnosis.fix_type === 'manual_required') {
+      return `**Manual Action Required:** ${diagnosis.fix_description}\n\nThis issue requires manual intervention and cannot be auto-fixed safely.`
+    }
+    return `**Proposed Fix:** ${diagnosis.fix_description}\n\n**Confidence:** ${Math.round(diagnosis.confidence * 100)}%`
+  }
+
+  if (lowerMsg.includes('retry') || lowerMsg.includes('again')) {
+    return "You can request a re-diagnosis using the 'Re-diagnose' button. This will trigger a fresh analysis of the CI failure."
+  }
+
+  if (lowerMsg.includes('confidence')) {
+    return `I'm ${Math.round(diagnosis.confidence * 100)}% confident in this diagnosis. ${
+      diagnosis.confidence >= 0.9
+        ? 'This is a high-confidence auto-fix.'
+        : diagnosis.confidence >= 0.7
+        ? 'This fix should be reviewed before applying.'
+        : 'This fix has lower confidence — manual review recommended.'
+    }`
+  }
+
+  return `Based on the diagnosis:\n\n**Problem:** ${diagnosis.problem_summary}\n\n**Fix:** ${diagnosis.fix_type === 'manual_required' ? diagnosis.fix_description : diagnosis.fix_description}`
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function RunDetail() {
@@ -501,11 +655,31 @@ export default function RunDetail() {
   const trackedView = useRef(false)
   const trackedManual = useRef(false)
 
+  // Chat state
+  const [messages, setMessages] = useState<Message[]>([])
+  const [chatInput, setChatInput] = useState('')
+  const [isAiResponding, setIsAiResponding] = useState(false)
+
+  // Progressive reveal state for AI sections
+  const [revealedSections, setRevealedSections] = useState({
+    problem: false,
+    rootCause: false,
+    fix: false,
+  })
+
   const { data: run, isLoading, isError } = useQuery<RunDetail>({
     queryKey: ['run', id],
     queryFn: () => api(`/runs/${id}`),
     refetchInterval: (query) =>
       POLLING_STATUSES.has(query.state.data?.status ?? '') ? 4000 : false,
+  })
+
+  // Fetch CI logs via backend proxy
+  const { data: logsData, isLoading: logsLoading, error: logsError } = useQuery<LogsResponse>({
+    queryKey: ['run-logs', id],
+    queryFn: () => api(`/runs/${id}/logs`),
+    enabled: !!run?.logs_url,
+    staleTime: 5 * 60 * 1000, // Logs don't change, cache for 5 minutes
   })
 
   // run_detail_viewed — fires once when run data loads
@@ -534,6 +708,22 @@ export default function RunDetail() {
     }
   }, [run])
 
+  // Progressive reveal: animate diagnosis sections appearing
+  useEffect(() => {
+    if (run?.diagnosis) {
+      // Reset reveal state when diagnosis changes
+      setRevealedSections({ problem: false, rootCause: false, fix: false })
+
+      // Staggered reveal with smooth timing
+      const timers: ReturnType<typeof setTimeout>[] = []
+      timers.push(setTimeout(() => setRevealedSections((s) => ({ ...s, problem: true })), 100))
+      timers.push(setTimeout(() => setRevealedSections((s) => ({ ...s, rootCause: true })), 400))
+      timers.push(setTimeout(() => setRevealedSections((s) => ({ ...s, fix: true })), 700))
+
+      return () => timers.forEach(clearTimeout)
+    }
+  }, [run?.diagnosis?.id])
+
   const dryRunMutation = useMutation({
     mutationFn: () => api<DryRunResult>(`/runs/${id}/dry-run`, { method: 'POST' }),
     onSuccess: (data) => setDryRunResult(data),
@@ -557,6 +747,45 @@ export default function RunDetail() {
       qc.invalidateQueries({ queryKey: ['run', id] })
     },
     onError: (e: Error) => toast.error(e.message),
+  })
+
+  // Chat mutation - sends message to backend; falls back to local diagnosis context on 404/error
+  const sendMessageMutation = useMutation({
+    mutationFn: async (message: string) => {
+      const response = await api<{ response: string }>(`/runs/${id}/chat`, {
+        method: 'POST',
+        body: JSON.stringify({
+          message,
+          context: {
+            run_id: id,
+            diagnosis_id: run?.diagnosis?.id,
+            current_status: run?.status,
+            problem_summary: run?.diagnosis?.problem_summary,
+            root_cause: run?.diagnosis?.root_cause,
+          },
+        }),
+      })
+      return response
+    },
+    onMutate: () => {
+      setIsAiResponding(true)
+    },
+    onSuccess: (data) => {
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: 'assistant', content: data.response, created_at: new Date().toISOString() },
+      ])
+      setIsAiResponding(false)
+    },
+    onError: () => {
+      // Fallback: Generate contextual response based on diagnosis
+      const fallbackResponse = generateFallbackResponse(chatInput, run?.diagnosis)
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: 'assistant', content: fallbackResponse, created_at: new Date().toISOString() },
+      ])
+      setIsAiResponding(false)
+    },
   })
 
   if (isLoading) {
@@ -587,8 +816,14 @@ export default function RunDetail() {
   const isTerminal = ['verified', 'diagnosis_failed', 'exhausted', 'skipped'].includes(run.status) || !!isDiagnosedTerminal
   const isApplied = ['fixed', 'waiting_verification', 'verified'].includes(run.status)
 
+  // Helper to highlight error lines in logs
+  const highlightLogLine = (line: string): boolean => {
+    const lower = line.toLowerCase()
+    return lower.includes('error') || lower.includes('failed') || lower.includes('exception') || lower.includes('fatal')
+  }
+
   return (
-    <div className="p-8 max-w-4xl mx-auto pb-32">
+    <div className="p-8 pb-32">
       {/* Back + header */}
       <button
         onClick={() => navigate(-1)}
@@ -598,27 +833,107 @@ export default function RunDetail() {
         Back
       </button>
 
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <div className="space-y-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline" className={`${className} text-sm px-3 py-1`}>{label}</Badge>
-            {d?.iteration && d.iteration > 1 && (
-              <Badge variant="outline" className="border-orange-700 text-orange-400">
-                Iteration {d.iteration}
-              </Badge>
-            )}
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <div className="space-y-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline" className={`${className} text-sm px-3 py-1`}>{label}</Badge>
+              {d?.iteration && d.iteration > 1 && (
+                <Badge variant="outline" className="border-orange-700 text-orange-400">
+                  Iteration {d.iteration}
+                </Badge>
+              )}
+            </div>
+            <p className="text-zinc-400 text-sm font-mono">{run.repo_full_name}</p>
+            <p className="text-zinc-500 text-xs font-mono">
+              {run.commit_sha.slice(0, 8)} · {run.commit_message?.split('\n')[0]}
+            </p>
           </div>
-          <p className="text-zinc-400 text-sm font-mono">{run.repo_full_name}</p>
-          <p className="text-zinc-500 text-xs font-mono">
-            {run.commit_sha.slice(0, 8)} · {run.commit_message?.split('\n')[0]}
-          </p>
+          <span className="text-zinc-600 text-xs whitespace-nowrap flex-shrink-0">
+            {formatDistanceToNow(new Date(run.created_at), { addSuffix: true })}
+          </span>
         </div>
-        <span className="text-zinc-600 text-xs whitespace-nowrap flex-shrink-0">
-          {formatDistanceToNow(new Date(run.created_at), { addSuffix: true })}
-        </span>
-      </div>
 
-      <Stepper status={run.status} />
+        <Stepper status={run.status} />
+
+        {/* Split Layout: Logs Left, AI Panel Right */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          {/* LEFT: CI Logs */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <FileCode className="h-4 w-4 text-zinc-400" />
+              <span className="text-xs text-zinc-500 uppercase tracking-widest font-medium">CI Logs</span>
+              {!run.logs_url && (
+                <Badge variant="outline" className="text-xs border-zinc-700 text-zinc-500">Not Available</Badge>
+              )}
+            </div>
+
+            <div className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden">
+              {logsLoading && (
+                <div className="p-4 space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-5/6" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+              )}
+
+              {logsError && (
+                <div className="p-6 text-center">
+                  <AlertTriangle className="h-8 w-8 text-amber-500/50 mx-auto mb-2" />
+                  <p className="text-zinc-500 text-sm">Failed to load logs</p>
+                  <p className="text-zinc-600 text-xs mt-1">
+                    {(logsError as Error)?.message || 'Logs may have expired or are unavailable'}
+                  </p>
+                </div>
+              )}
+
+              {!run.logs_url && !logsLoading && (
+                <div className="p-6 text-center">
+                  <Info className="h-8 w-8 text-zinc-600 mx-auto mb-2" />
+                  <p className="text-zinc-500 text-sm">Logs not available</p>
+                  <p className="text-zinc-600 text-xs mt-1">This run may predate log collection</p>
+                </div>
+              )}
+
+              {logsData?.logs && (
+                <div className="max-h-[600px] overflow-y-auto bg-zinc-950">
+                  <div className="font-mono text-xs p-4">
+                    {logsData.logs.split('\n').map((line, i) => {
+                      const isError = highlightLogLine(line)
+                      return (
+                        <div
+                          key={i}
+                          className={`flex gap-3 leading-relaxed ${
+                            isError
+                              ? 'bg-red-950/20 -mx-4 px-4 border-l-2 border-red-500/50'
+                              : 'hover:bg-zinc-900/50 -mx-4 px-4'
+                          }`}
+                        >
+                          <span className="text-zinc-700 select-none w-10 shrink-0 text-right tabular-nums">
+                            {i + 1}
+                          </span>
+                          <span className={isError ? 'text-red-300' : 'text-zinc-400'}>
+                            {line || '\u00A0'}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT: AI Analysis Panel */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+              <span className="text-xs text-zinc-500 uppercase tracking-widest font-medium">AI Analysis</span>
+              {d && <span className="text-xs text-zinc-600">· Iteration {d.iteration}</span>}
+            </div>
 
       {/* Error banner */}
       {(run.status === 'diagnosis_failed' || run.status === 'exhausted') && (
@@ -689,7 +1004,10 @@ export default function RunDetail() {
           )}
 
           {/* Problem */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+          <div
+            className={`bg-zinc-900 border border-zinc-800 rounded-xl p-5 transition-all duration-300 ${
+              revealedSections.problem ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+            }`}>
             <div className="flex items-center gap-2 mb-3">
               <XCircle className="h-4 w-4 text-red-400" />
               <span className="text-sm font-medium text-zinc-300">Problem</span>
@@ -727,7 +1045,10 @@ export default function RunDetail() {
           </div>
 
           {/* Root Cause */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+          <div
+            className={`bg-zinc-900 border border-zinc-800 rounded-xl p-5 transition-all duration-300 ${
+              revealedSections.rootCause ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+            }`}>
             <div className="flex items-center gap-2 mb-3">
               <Lightbulb className="h-4 w-4 text-amber-400" />
               <span className="text-sm font-medium text-zinc-300">Root Cause</span>
@@ -737,7 +1058,10 @@ export default function RunDetail() {
 
           {/* Proposed Fix */}
           {d.fix_type !== 'manual_required' && (
-            <div className="bg-gradient-to-br from-violet-950/30 to-zinc-900 border border-violet-800/40 border-l-[3px] border-l-violet-500 rounded-xl p-5">
+            <div
+              className={`bg-gradient-to-br from-violet-950/30 to-zinc-900 border border-violet-800/40 border-l-[3px] border-l-violet-500 rounded-xl p-5 transition-all duration-300 ${
+                revealedSections.fix ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+              }`}>
               <div className="flex items-center gap-2 mb-3">
                 <Wrench className="h-4 w-4 text-violet-400" />
                 <span className="text-sm font-medium text-zinc-300">Proposed Fix</span>
@@ -748,7 +1072,10 @@ export default function RunDetail() {
 
           {d.fix_type === 'manual_required' && (
             <>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 border-l-2 border-l-zinc-600">
+              <div
+                className={`bg-zinc-900 border border-zinc-800 rounded-xl p-5 border-l-2 border-l-zinc-600 transition-all duration-300 ${
+                  revealedSections.fix ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+                }`}>
                 <div className="flex items-center gap-2 mb-3">
                   <AlertTriangle className="h-4 w-4 text-zinc-400" />
                   <span className="text-sm font-medium text-zinc-300">Manual Action Required</span>
@@ -759,6 +1086,7 @@ export default function RunDetail() {
               <ManualActionCard
                 runId={run.id}
                 diagnosis={d}
+                repoFullName={run.repo_full_name}
                 onActionComplete={() => qc.invalidateQueries({ queryKey: ['run', id] })}
               />
             </>
@@ -833,8 +1161,96 @@ export default function RunDetail() {
           ) : (
             <p className="text-sm">No diagnosis available.</p>
           )}
+
+          {/* ── Chat Interface ── */}
+          <div className="mt-6 pt-6 border-t border-zinc-800">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span className="text-xs text-zinc-500 uppercase tracking-widest font-medium">Ask Prash</span>
+            </div>
+
+            {/* Messages */}
+            <div className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden">
+              <div className="max-h-[300px] overflow-y-auto p-3 space-y-3">
+                {messages.length === 0 ? (
+                  <div className="text-center py-6 text-zinc-500 text-sm">
+                    <p>Ask about this CI failure:</p>
+                    <p className="text-zinc-600 text-xs mt-1">"What went wrong?" · "Explain the fix" · "Should I retry?"</p>
+                  </div>
+                ) : (
+                  messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[85%] px-3 py-2 rounded-lg text-sm ${
+                          msg.role === 'user'
+                            ? 'bg-violet-600 text-white'
+                            : 'bg-zinc-800 text-zinc-300'
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+                {isAiResponding && (
+                  <div className="flex justify-start">
+                    <div className="bg-zinc-800 px-3 py-2 rounded-lg">
+                      <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Input */}
+              <div className="border-t border-zinc-800 p-3">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    if (!chatInput.trim() || isAiResponding) return
+
+                    const newMessage: Message = {
+                      id: crypto.randomUUID(),
+                      role: 'user',
+                      content: chatInput.trim(),
+                      created_at: new Date().toISOString(),
+                    }
+                    setMessages((prev) => [...prev, newMessage])
+                    sendMessageMutation.mutate(chatInput.trim())
+                    setChatInput('')
+                  }}
+                  className="flex gap-2"
+                >
+                  <Input
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder="Ask about the failure..."
+                    className="bg-zinc-900 border-zinc-700 text-zinc-100 text-sm"
+                    disabled={isAiResponding}
+                  />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    className="bg-violet-600 hover:bg-violet-500 text-white"
+                    disabled={!chatInput.trim() || isAiResponding}
+                  >
+                    {isAiResponding ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <ExternalLink className="h-4 w-4 rotate-45" />
+                    )}
+                  </Button>
+                </form>
+              </div>
+            </div>
+          </div>
         </div>
       )}
+          </div> {/* Close RIGHT: AI Analysis Panel */}
+        </div> {/* Close grid */}
+      </div> {/* Close max-w-7xl */}
 
       {/* ── Sticky action footer ── */}
       {d && !isTerminal && (
