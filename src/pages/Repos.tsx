@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
-import { GitBranch, Plus, MoreHorizontal, Unplug, Search, Lock } from 'lucide-react'
+import { GitBranch, Plus, MoreHorizontal, Unplug, Search, Lock, Puzzle } from 'lucide-react'
 import { toast } from 'sonner'
 import { posthog } from '@/lib/posthog'
 import { api } from '@/lib/api'
+import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -208,9 +209,49 @@ function ConnectRepoDialog({
   )
 }
 
+function InstallAppBanner() {
+  const { data: installUrl } = useQuery<{ install_url: string }>({
+    queryKey: ['github-app-install-url'],
+    queryFn: () => api('/auth/github-app/install-url'),
+    staleTime: Infinity,
+  })
+
+  const { data: githubRepos } = useQuery<GithubRepo[]>({
+    queryKey: ['github-repos'],
+    queryFn: () => api('/repos/github-list'),
+    staleTime: 60_000,
+  })
+
+  // Only show banner if we can fetch repos (app installed) — hide if already installed
+  if (githubRepos && githubRepos.length > 0) return null
+
+  return (
+    <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-violet-800/50 bg-violet-950/20 px-5 py-4">
+      <div className="flex items-center gap-3">
+        <Puzzle className="h-5 w-5 text-violet-400 flex-shrink-0" />
+        <div>
+          <p className="text-sm font-medium text-zinc-200">Install the GitHub App to connect repos</p>
+          <p className="text-xs text-zinc-500 mt-0.5">Grants access to your personal, org, and collab repos</p>
+        </div>
+      </div>
+      <Button
+        size="sm"
+        className="bg-violet-600 hover:bg-violet-500 text-white flex-shrink-0"
+        onClick={() => {
+          if (installUrl?.install_url) window.open(installUrl.install_url, '_blank')
+        }}
+      >
+        Install GitHub App
+      </Button>
+    </div>
+  )
+}
+
 export default function Repos() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const qc = useQueryClient()
+  const { user } = useAuth()
+  void user // used for cache key isolation
 
   const { data: repos, isLoading, isError } = useQuery<ConnectedRepo[]>({
     queryKey: ['connected-repos'],
@@ -228,6 +269,7 @@ export default function Repos() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
+      <InstallAppBanner />
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-zinc-100">Connected Repos</h1>
         <Button

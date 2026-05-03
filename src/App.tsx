@@ -17,6 +17,7 @@ import Landing from '@/pages/Landing'
 import HowItWorks from '@/pages/HowItWorks'
 import Login from '@/pages/Login'
 import AuthCallback from '@/pages/AuthCallback'
+import GitHubAppCallback from '@/pages/GitHubAppCallback'
 import Dashboard from '@/pages/Dashboard'
 import Repos from '@/pages/Repos'
 import Failures from '@/pages/Failures'
@@ -35,6 +36,7 @@ export default function App() {
           <Route path="/how-it-works" element={<HowItWorks />} />
           <Route path="/login" element={<Login />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/github-app-callback" element={<GitHubAppCallback />} />
 
           {/* Protected routes — wrapped in sidebar layout */}
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
