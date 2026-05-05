@@ -118,70 +118,89 @@ export default function Landing() {
       </nav>
 
       {/* Hero */}
-      <section className="relative px-4 sm:px-6 pt-20 sm:pt-28 pb-16 sm:pb-24 text-center overflow-hidden">
-        <motion.div
-          className="max-w-5xl mx-auto relative z-10"
-          variants={stagger}
-          initial="hidden"
-          animate="show"
-        >
-          <motion.h1
-            variants={fadeUp}
-            className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.05] mb-6"
+      <section className="relative px-4 sm:px-6 pt-20 sm:pt-28 pb-16 sm:pb-24 overflow-hidden">
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Left column: content */}
+            <motion.div
+              className=""
+              variants={stagger}
+              initial="hidden"
+              animate="show"
+            >
+              <motion.h1
+                variants={fadeUp}
+                className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.05] mb-6"
+              >
+                When your CI fails,
+                <br />
+                <span className="text-yellow-400">
+                  We fix it and all you do is merge
+                </span>
+              </motion.h1>
+
+              <motion.p variants={fadeUp} className="text-base sm:text-lg text-zinc-400 mb-8 leading-relaxed">
+                Prash by Drufiy watches your GitHub Actions. When a build breaks, it diagnoses the root cause, opens a PR with the fix, and verifies CI passes, usually before you've finished your coffee.
+              </motion.p>
+
+              <motion.p variants={fadeUp} className="text-sm text-zinc-600 mb-8">Early access is live now</motion.p>
+
+              <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-start gap-4 mb-10">
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-8 h-12 text-base rounded-xl shadow-lg shadow-yellow-400/20 transition-all"
+                  onClick={() => { posthog.capture('demo_viewed', { source: 'hero_cta' }); window.location.href = '/dashboard?demo=true' }}
+                >
+                  View live demo
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="w-full sm:w-auto text-zinc-300 hover:text-white hover:bg-white/5 px-8 h-12 text-base rounded-xl border border-white/10"
+                  onClick={() => navigate('/login')}
+                >
+                  Get early access
+                </Button>
+              </motion.div>
+
+              <motion.p variants={fadeUp} className="text-xs text-zinc-600 mb-8 max-w-xs">
+                Free during beta. GitHub App install in 30 seconds. No credit card.
+              </motion.p>
+
+              <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-zinc-500">
+                <span className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-yellow-400" />
+                  GitHub App install in 30s
+                </span>
+                <span className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-yellow-400" />
+                  Works with any GitHub Actions
+                </span>
+              </motion.div>
+            </motion.div>
+
+            {/* Right column: terminal demo */}
+            <motion.div
+              className="hidden lg:block"
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+            >
+              <CILogSimulation />
+            </motion.div>
+          </div>
+
+          {/* Mobile terminal — below content on mobile */}
+          <motion.div
+            className="lg:hidden mt-12 sm:mt-16"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
           >
-            When your CI fails,
-            <br />
-            <span className="text-yellow-400">
-              We fix it and all you do is merge
-            </span>
-          </motion.h1>
-
-          <motion.p variants={fadeUp} className="text-base sm:text-xl text-zinc-400 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed">
-            Prash by Drufiy watches your GitHub Actions. When a build breaks, it diagnoses the root cause, opens a PR with the fix, and verifies CI passes, usually before you've finished your coffee.
-          </motion.p>
-
-          <motion.p variants={fadeUp} className="text-sm text-zinc-600 mb-8">Early access is live now</motion.p>
-
-          <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10 sm:mb-12">
-            <Button
-              size="lg"
-              className="w-full sm:w-auto bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-8 h-12 text-base rounded-xl shadow-lg shadow-yellow-400/20 transition-all"
-              onClick={() => navigate('/login')}
-            >
-              Get early access
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="lg"
-              className="w-full sm:w-auto text-zinc-300 hover:text-white hover:bg-white/5 px-8 h-12 text-base rounded-xl border border-white/10"
-              onClick={() => { posthog.capture('demo_viewed', { source: 'hero_cta' }); window.location.href = '/dashboard?demo=true' }}
-            >
-              View live demo
-            </Button>
+            <CILogSimulation />
           </motion.div>
-
-          <motion.div variants={fadeUp} className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm text-zinc-500">
-            <span className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-yellow-400" />
-              GitHub App install in 30s
-            </span>
-            <span className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-yellow-400" />
-              Works with any GitHub Actions
-            </span>
-          </motion.div>
-        </motion.div>
-
-        {/* Hero visual — CI log simulation */}
-        <motion.div
-          className="mt-16 sm:mt-20 max-w-3xl mx-auto relative z-10"
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-        >
-          <CILogSimulation />
-        </motion.div>
+        </div>
       </section>
 
       {/* Agents */}
@@ -279,7 +298,7 @@ export default function Landing() {
             <motion.p variants={fadeUp} className="text-yellow-400 text-sm font-medium uppercase tracking-widest mb-3">Why Prash</motion.p>
             <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight">Built for developers by developers</motion.h2>
             <motion.p variants={fadeUp} className="text-zinc-400 text-base sm:text-lg max-w-xl mx-auto">
-              Created by engineers who've spent years scaling CI/CD at high-growth companies.
+              Built by teenagers who don't have a CS degree — but do have a solution to your late-night debugging.
             </motion.p>
           </AnimatedSection>
 
