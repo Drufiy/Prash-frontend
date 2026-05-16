@@ -1,16 +1,16 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  GitBranch, Search, GitPullRequest, CheckCircle2,
   ArrowRight, Code2, Cpu, ChevronRight,
-  Clock,
+  Clock, Search, GitPullRequest, CheckCircle2,
 } from 'lucide-react'
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 import { posthog } from '@/lib/posthog'
-import CILogSimulation from '@/components/CILogSimulation'
+import BeforeAfterComparison from '@/components/BeforeAfterComparison'
+import HowItWorksSticky from '@/components/HowItWorksSticky'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -41,10 +41,29 @@ function AnimatedSection({ children, className }: { children: React.ReactNode; c
 export default function Landing() {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const heroRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!loading && user) navigate('/dashboard', { replace: true })
   }, [user, loading, navigate])
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!heroRef.current) return
+      const rect = heroRef.current.getBoundingClientRect()
+      setMousePos({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      })
+    }
+
+    const hero = heroRef.current
+    if (hero) {
+      hero.addEventListener('mousemove', handleMouseMove)
+      return () => hero.removeEventListener('mousemove', handleMouseMove)
+    }
+  }, [])
 
   const agents = [
     {
@@ -74,21 +93,27 @@ export default function Landing() {
   ]
 
   return (
-    <div className="min-h-screen bg-black text-white antialiased">
+    <div className="min-h-screen bg-[#0a0a0a] text-white antialiased relative">
 
-      {/* Hero glow */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-yellow-400/8 blur-[120px] pointer-events-none rounded-full" />
+      {/* Background base & noise overlay */}
+      <div className="fixed inset-0 bg-[#0a0a0a] pointer-events-none" />
+      <div
+        className="fixed inset-0 opacity-[0.02] pointer-events-none mix-blend-overlay"
+        style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'64\' height=\'64\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' result=\'noise\'\/%3E%3C/filter%3E%3Crect width=\'64\' height=\'64\' fill=\'white\' filter=\'url(%23noise)\'\/%3E%3C/svg%3E")' }}
+      />
+      {/* Hero radial glow */}
+      <div className="fixed top-32 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-yellow-400 opacity-[0.06] blur-[120px] pointer-events-none rounded-full" />
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b border-white/8 bg-black/90 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <nav className="sticky top-0 z-50 border-b border-white/6 bg-[#0a0a0a]/95 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between relative z-10">
           <div className="flex items-center gap-2.5">
-            <img src="/logo.svg" alt="Prash" className="w-7 h-7 rounded-md object-contain" />
-            <span className="font-bold text-base tracking-tight text-white">Prash</span>
-            <span className="text-xs text-zinc-500 font-normal ml-0.5">by Drufiy</span>
+            <img src="/logo.svg" alt="Prash" className="w-6 h-6 rounded-md object-contain" />
+            <span className="text-sm font-medium tracking-tight text-white">Prash</span>
+            <span className="text-xs text-white/40 font-normal ml-0.5">by Drufiy</span>
           </div>
 
-          <div className="hidden md:flex items-center gap-8 text-sm text-zinc-400">
+          <div className="hidden md:flex items-center gap-8 text-sm text-white/60">
             <button
               onClick={() => navigate('/how-it-works')}
               className="hover:text-white transition-colors"
@@ -101,13 +126,13 @@ export default function Landing() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate('/login')}
-              className="text-sm text-zinc-400 hover:text-white transition-colors hidden sm:block"
+              className="text-sm text-white/60 hover:text-white transition-colors hidden sm:block"
             >
               Sign in
             </button>
             <Button
               size="sm"
-              className="bg-yellow-400 hover:bg-yellow-300 text-black font-semibold rounded-lg px-4 h-8 text-sm"
+              className="bg-yellow-400 hover:bg-yellow-300 text-black font-medium rounded-lg px-4 h-8 text-sm"
               onClick={() => navigate('/login')}
             >
               Get started
@@ -118,122 +143,146 @@ export default function Landing() {
       </nav>
 
       {/* Hero */}
-      <section className="relative px-4 sm:px-6 pt-20 sm:pt-28 pb-16 sm:pb-24 overflow-hidden">
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            {/* Left column: content */}
-            <motion.div
-              className=""
-              variants={stagger}
-              initial="hidden"
-              animate="show"
-            >
-              <motion.h1
-                variants={fadeUp}
-                className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.05] mb-6"
-              >
-                When your CI fails,
-                <br />
-                <span className="text-yellow-400">
-                  We fix it and all you do is merge
-                </span>
-              </motion.h1>
-
-              <motion.p variants={fadeUp} className="text-base sm:text-lg text-zinc-400 mb-8 leading-relaxed">
-                Prash by Drufiy watches your GitHub Actions. When a build breaks, it diagnoses the root cause, opens a PR with the fix, and verifies CI passes, usually before you've finished your coffee.
-              </motion.p>
-
-              <motion.p variants={fadeUp} className="text-sm text-zinc-600 mb-8">Early access is live now</motion.p>
-
-              <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-start gap-4 mb-10">
-                <Button
-                  size="lg"
-                  className="w-full sm:w-auto bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-8 h-12 text-base rounded-xl shadow-lg shadow-yellow-400/20 transition-all"
-                  onClick={() => { posthog.capture('demo_viewed', { source: 'hero_cta' }); window.location.href = '/dashboard?demo=true' }}
-                >
-                  View live demo
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  className="w-full sm:w-auto text-zinc-300 hover:text-white hover:bg-white/5 px-8 h-12 text-base rounded-xl border border-white/10"
-                  onClick={() => navigate('/login')}
-                >
-                  Get early access
-                </Button>
-              </motion.div>
-
-              <motion.p variants={fadeUp} className="text-xs text-zinc-600 mb-8 max-w-xs">
-                Free during beta. GitHub App install in 30 seconds. No credit card.
-              </motion.p>
-
-              <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-zinc-500">
-                <span className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-yellow-400" />
-                  GitHub App install in 30s
-                </span>
-                <span className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-yellow-400" />
-                  Works with any GitHub Actions
-                </span>
-              </motion.div>
-            </motion.div>
-
-            {/* Right column: terminal demo */}
-            <motion.div
-              className="hidden lg:block"
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-            >
-              <CILogSimulation />
-            </motion.div>
-          </div>
-
-          {/* Mobile terminal — below content on mobile */}
+      <section ref={heroRef} className="relative px-4 sm:px-6 pt-32 sm:pt-40 pb-20 overflow-hidden">
+        {/* Cursor-following glow */}
+        <motion.div
+          className="pointer-events-none fixed w-80 h-80 bg-yellow-400 rounded-full opacity-0 mix-blend-screen blur-3xl"
+          animate={{
+            x: mousePos.x - 160,
+            y: mousePos.y - 160,
+            opacity: 0.04,
+          }}
+          transition={{ type: 'tween', duration: 0.3 }}
+        />
+        <div className="max-w-4xl mx-auto relative z-10">
           <motion.div
-            className="lg:hidden mt-12 sm:mt-16"
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
+            variants={stagger}
+            initial="hidden"
+            animate="show"
+            className="text-center"
           >
-            <CILogSimulation />
+            {/* Status pill */}
+            <motion.div variants={fadeUp} className="mb-8 flex items-center justify-center">
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.03]">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs text-white/65 font-medium">Early access · onboarding design partners</span>
+              </div>
+            </motion.div>
+
+            {/* Main headline */}
+            <motion.h1
+              variants={fadeUp}
+              className="text-5xl sm:text-6xl lg:text-6xl font-medium tracking-tighter leading-[1.1] mb-8 text-white"
+            >
+              CI that{' '}
+              <span className="relative">
+                <span className="text-yellow-400">fixes itself.</span>
+              </span>
+            </motion.h1>
+
+            {/* Subheadline */}
+            <motion.p
+              variants={fadeUp}
+              className="text-base sm:text-lg text-white/65 mb-10 leading-relaxed max-w-3xl mx-auto"
+            >
+              Prash watches your GitHub Actions, diagnoses failures, and ships a verified PR automatically.
+            </motion.p>
+
+            {/* CTA buttons */}
+            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+              <Button
+                size="lg"
+                className="bg-yellow-400 hover:bg-yellow-300 text-black font-medium px-8 h-12 text-base rounded-lg transition-all"
+                onClick={() => navigate('/login')}
+              >
+                Install the GitHub App
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              <button
+                onClick={() => { posthog.capture('demo_viewed', { source: 'hero_cta' }); window.location.href = '/dashboard?demo=true' }}
+                className="text-white/65 hover:text-white transition-colors text-base font-medium"
+              >
+                Watch 60s demo →
+              </button>
+            </motion.div>
+
+            {/* Product screenshot placeholder */}
+            <motion.div
+              variants={fadeUp}
+              className="relative rounded-xl overflow-hidden border border-white/10 bg-black/40"
+            >
+              {/* TODO: REPLACE WITH REAL PR SCREENSHOT (1200x700) */}
+              <div className="aspect-video bg-gradient-to-b from-white/[0.08] to-white/[0.02] flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-white/40 text-sm">REPLACE WITH REAL PR SCREENSHOT</p>
+                  <p className="text-white/25 text-xs mt-1">1200x700 — showing Prash opening a PR</p>
+                </div>
+              </div>
+              {/* Yellow glow underneath */}
+              <div className="absolute -bottom-24 left-1/2 -translate-x-1/2 w-96 h-48 bg-yellow-400 opacity-[0.08] blur-3xl pointer-events-none" />
+            </motion.div>
           </motion.div>
         </div>
       </section>
 
-      {/* Agents */}
-      <section id="agents" className="px-4 sm:px-6 py-16 sm:py-24 border-b border-white/5">
+      {/* Before/After Comparison */}
+      <BeforeAfterComparison />
+
+      {/* Agents - Asymmetric Layout */}
+      <section id="agents" className="px-4 sm:px-6 py-32 border-b border-white/6">
         <div className="max-w-7xl mx-auto">
-          <AnimatedSection className="text-center mb-12 sm:mb-16">
-            <motion.p variants={fadeUp} className="text-yellow-400 text-sm font-medium uppercase tracking-widest mb-3">Specialized agents</motion.p>
-            <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight">A team built for reliability</motion.h2>
-            <motion.p variants={fadeUp} className="text-zinc-400 max-w-2xl mx-auto text-base sm:text-lg">
-              Three specialized agents working in concert to keep your CI reliable, fast, and secure.
+          <AnimatedSection className="text-center mb-16">
+            <motion.p variants={fadeUp} className="text-yellow-400 text-xs font-medium uppercase tracking-widest mb-3">How it works</motion.p>
+            <motion.h2 variants={fadeUp} className="text-4xl font-medium tracking-tight mb-6 text-white">Three specialized agents</motion.h2>
+            <motion.p variants={fadeUp} className="text-white/65 max-w-2xl mx-auto text-base">
+              Working in concert to diagnose failures, generate fixes, and verify every solution passes CI.
             </motion.p>
           </AnimatedSection>
 
-          <AnimatedSection className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <AnimatedSection className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {agents.map((agent, idx) => {
               const Icon = agent.icon
+              const isMiddle = idx === 1
               return (
                 <motion.div
                   key={idx}
                   variants={fadeUp}
-                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                  className={`group relative p-5 rounded-2xl border border-white/8 bg-white/[0.02] ${agent.borderHover} transition-colors duration-300 hover:bg-white/[0.05] cursor-default`}
+                  className={`group relative rounded-xl border border-white/6 bg-[#0e0e0e] overflow-hidden transition-all duration-300 hover:border-yellow-400/30 hover:shadow-lg hover:shadow-yellow-400/10 ${
+                    isMiddle ? 'md:col-span-2' : 'md:col-span-1'
+                  }`}
                 >
-                  <div className={`absolute inset-0 rounded-2xl bg-gradient-to-b ${agent.color} opacity-0 group-hover:opacity-100 transition-opacity`} />
-                  <div className="relative">
-                    <div className="w-10 h-10 rounded-xl bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center mb-4">
+                  <div className="p-6 flex flex-col h-full">
+                    <div className="w-10 h-10 rounded-lg bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center mb-4">
                       <Icon className="w-5 h-5 text-yellow-400" />
                     </div>
-                    <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-yellow-400/10 text-yellow-400/80 border border-yellow-400/20 mb-3 font-medium">
+                    <span className="inline-block text-[10px] px-2.5 py-1 rounded-full bg-yellow-400/10 text-yellow-400/80 border border-yellow-400/20 mb-4 font-medium w-fit">
                       {agent.badge}
                     </span>
-                    <h3 className="font-semibold text-sm mb-2 text-white">{agent.title}</h3>
-                    <p className="text-xs text-zinc-500 leading-relaxed">{agent.description}</p>
+                    <h3 className="font-medium text-base mb-3 text-white">{agent.title}</h3>
+                    <p className="text-sm text-white/60 leading-relaxed flex-1">{agent.description}</p>
+
+                    {isMiddle && (
+                      <div className="mt-8 pt-6 border-t border-white/6">
+                        <p className="text-xs text-white/40 uppercase tracking-widest font-medium mb-3">Example fix</p>
+                        <div className="bg-black/60 rounded-lg p-4 font-mono text-xs space-y-1.5 overflow-x-auto">
+                          <div className="text-white/30">
+                            <span>@@ -42,3 +42,5 @@ export async function</span>
+                          </div>
+                          <div className="text-white/40">
+                            <span>  const response = await fetch(url)</span>
+                          </div>
+                          <div className="text-emerald-500/80">
+                            <span>+ if (!response.ok) {'{'}return handle_error(response){'}'}  </span>
+                          </div>
+                          <div className="text-emerald-500/80">
+                            <span>+ return response.json()</span>
+                          </div>
+                          <div className="mt-3 text-emerald-400 text-xs">
+                            <span>✓ All checks passed</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )
@@ -242,97 +291,50 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* How it works — quick preview */}
-      <section className="px-4 sm:px-6 py-16 sm:py-24 border-b border-white/5 bg-white/[0.01]">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-10 sm:gap-16 items-center">
-            <div>
-              <p className="text-yellow-400 text-sm font-medium uppercase tracking-widest mb-3">How it works</p>
-              <h2 className="text-3xl sm:text-4xl font-bold mb-6 tracking-tight leading-tight">
-                From failure to fix
-                <br />
-                in four steps.
-              </h2>
-              <p className="text-zinc-400 text-base sm:text-lg mb-8 leading-relaxed">
-                Install once. Prash monitors your CI 24/7, automatically diagnoses failures, creates pull requests with fixes, and verifies they pass before you even open your laptop.
-              </p>
-              <Button
-                variant="outline"
-                className="border-white/10 text-zinc-300 hover:bg-white/5 hover:text-white rounded-xl"
-                onClick={() => navigate('/how-it-works')}
-              >
-                View full guide
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-
-            <AnimatedSection className="space-y-3">
-              {[
-                { n: '01', title: 'Connect your repo', desc: 'Install via GitHub App in 30 seconds. Works with any existing workflow.', icon: GitBranch },
-                { n: '02', title: 'Detect & diagnose', desc: 'Prash watches your GitHub Actions and analyzes failures instantly as they happen.', icon: Search },
-                { n: '03', title: 'Fix & create PR', desc: 'Automatic fixes are generated, tested, and a PR is opened and ready for review.', icon: GitPullRequest },
-                { n: '04', title: 'Verify & ship', desc: 'All CI tests pass before Prash marks the fix verified. No false positives.', icon: CheckCircle2 },
-              ].map(({ n, title, desc, icon: Icon }, idx) => (
-                <motion.div key={idx} variants={fadeUp} className="flex gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:border-yellow-400/20 transition-colors group">
-                  <div className="shrink-0 w-8 h-8 rounded-lg bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center mt-0.5">
-                    <Icon className="w-4 h-4 text-yellow-400" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs text-yellow-400/60 font-mono">{n}</span>
-                      <span className="text-sm font-semibold text-white">{title}</span>
-                    </div>
-                    <p className="text-xs text-zinc-500 leading-relaxed">{desc}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatedSection>
-          </div>
-        </div>
-      </section>
+      {/* How it works — Sticky scroll */}
+      <HowItWorksSticky />
 
       {/* Why Prash */}
-      <section className="px-4 sm:px-6 py-16 sm:py-24 border-b border-white/5">
+      <section className="px-4 sm:px-6 py-32 border-b border-white/6">
         <div className="max-w-7xl mx-auto">
-          <AnimatedSection className="text-center mb-12 sm:mb-16">
-            <motion.p variants={fadeUp} className="text-yellow-400 text-sm font-medium uppercase tracking-widest mb-3">Why Prash</motion.p>
-            <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight">Built for developers by developers</motion.h2>
-            <motion.p variants={fadeUp} className="text-zinc-400 text-base sm:text-lg max-w-xl mx-auto">
-              Built by people who've actually debugged CI for hours at 2 AM. We know your pain.
+          <AnimatedSection className="text-center mb-16">
+            <motion.p variants={fadeUp} className="text-yellow-400 text-xs font-medium uppercase tracking-widest mb-3">Why Prash</motion.p>
+            <motion.h2 variants={fadeUp} className="text-4xl font-medium tracking-tight mb-6 text-white">Built for the 2am CI failure</motion.h2>
+            <motion.p variants={fadeUp} className="text-white/65 text-base max-w-xl mx-auto">
+              When your builds break in the middle of a sprint.
             </motion.p>
           </AnimatedSection>
 
-          <AnimatedSection className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <AnimatedSection className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
                 icon: Clock,
-                title: 'Instant diagnosis',
-                desc: 'Get root cause analysis in seconds instead of hours of manual log trawling and debugging.',
+                title: 'Sub-5 minute diagnosis',
+                desc: 'Root cause in seconds, not hours of manual log trawling.',
+                stat: '~8s',
               },
               {
                 icon: Code2,
-                title: 'Automated fixes',
-                desc: 'Fixes are generated and validated through your full CI pipeline. No rubber stamping.',
+                title: 'Automated fixes that work',
+                desc: 'Verified through your full CI pipeline before opening the PR.',
+                stat: '73%',
               },
               {
                 icon: Cpu,
-                title: 'No config needed',
-                desc: 'Zero configuration. Install the GitHub App and Prash figures everything else out automatically.',
+                title: 'Zero config overhead',
+                desc: 'Install the GitHub App. Prash figures everything else out.',
+                stat: '0',
               },
-              {
-                icon: GitBranch,
-                title: 'Any workflow',
-                desc: 'Works with any GitHub Actions workflow: monorepos, matrix builds, custom runners.',
-              },
-            ].map(({ icon: Icon, title, desc }, idx) => (
-              <motion.div key={idx} variants={fadeUp} whileHover={{ y: -3, transition: { duration: 0.2 } }} className="flex gap-4 p-5 rounded-2xl border border-white/5 hover:border-yellow-400/20 hover:bg-white/[0.02] transition-colors">
-                <div className="shrink-0 w-9 h-9 rounded-lg bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center">
-                  <Icon className="w-4 h-4 text-yellow-400" />
+            ].map(({ icon: Icon, title, desc, stat }, idx) => (
+              <motion.div key={idx} variants={fadeUp} className="flex flex-col p-6 rounded-xl border border-white/6 bg-[#0e0e0e] hover:border-yellow-400/30 transition-all">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-yellow-400" />
+                  </div>
+                  <div className="text-lg font-medium text-yellow-400">{stat}</div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-sm mb-1.5 text-white">{title}</h3>
-                  <p className="text-xs text-zinc-500 leading-relaxed">{desc}</p>
-                </div>
+                <h3 className="font-medium text-base mb-2 text-white">{title}</h3>
+                <p className="text-sm text-white/60 leading-relaxed">{desc}</p>
               </motion.div>
             ))}
           </AnimatedSection>
@@ -341,33 +343,24 @@ export default function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="px-4 sm:px-6 py-20 sm:py-28">
+      <section className="px-4 sm:px-6 py-32">
         <div className="max-w-3xl mx-auto text-center relative">
-          <div className="absolute inset-0 bg-yellow-400/5 blur-3xl rounded-full pointer-events-none" />
-          <AnimatedSection className="relative">
-            <motion.p variants={fadeUp} className="text-yellow-400 text-sm font-medium uppercase tracking-widest mb-4">Get started today</motion.p>
-            <motion.h2 variants={fadeUp} className="text-3xl sm:text-5xl font-bold mb-6 tracking-tight leading-tight">
-              Stop debugging CI.
+          <div className="absolute -inset-20 bg-yellow-400/5 blur-3xl rounded-full pointer-events-none" />
+          <AnimatedSection className="relative z-10">
+            <motion.h2 variants={fadeUp} className="text-5xl font-medium tracking-tight mb-6 text-white">
+              Stop debugging CI
             </motion.h2>
-            <motion.p variants={fadeUp} className="text-zinc-400 text-base sm:text-lg mb-10 leading-relaxed">
-              Install the GitHub App in 30 seconds. We're onboarding design partners now.
+            <motion.p variants={fadeUp} className="text-white/65 text-base mb-10">
+              Free during early access. No credit card.
             </motion.p>
-            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <motion.div variants={fadeUp}>
               <Button
                 size="lg"
-                className="w-full sm:w-auto bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-10 h-12 text-base rounded-xl shadow-lg shadow-yellow-400/20 transition-all"
+                className="bg-yellow-400 hover:bg-yellow-300 text-black font-medium px-10 h-12 text-base rounded-lg transition-all"
                 onClick={() => navigate('/login')}
               >
-                Get early access
+                Install the GitHub App
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="lg"
-                className="w-full sm:w-auto text-zinc-400 hover:text-white hover:bg-white/5 px-8 h-12 rounded-xl border border-white/8"
-                onClick={() => navigate('/how-it-works')}
-              >
-                Learn how it works
               </Button>
             </motion.div>
           </AnimatedSection>
@@ -375,47 +368,45 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 bg-white/[0.01]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 sm:gap-10 mb-10 sm:mb-12 pb-10 sm:pb-12 border-b border-white/5">
-            <div className="col-span-2">
+      <footer className="border-t border-white/6 bg-white/[0.005]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-12 pb-12 border-b border-white/6">
+            <div className="lg:col-span-2">
               <div className="flex items-center gap-2.5 mb-4">
-                <img src="/logo.svg" alt="Prash" className="w-7 h-7 rounded-md object-contain" />
-                <span className="font-bold text-white">Prash by Drufiy</span>
+                <img src="/logo.svg" alt="Prash" className="w-6 h-6 rounded-md object-contain" />
+                <span className="text-sm font-medium text-white">Prash by Drufiy</span>
               </div>
-              <p className="text-sm text-zinc-500 leading-relaxed max-w-xs">
-                CI failures diagnosed and fixed automatically. No more debugging build logs.
+              <p className="text-sm text-white/60 leading-relaxed max-w-xs mb-4">
+                CI failures diagnosed and fixed automatically.
               </p>
+              <p className="text-xs text-white/40 font-medium">Built in Delhi</p>
             </div>
             <div>
-              <h4 className="font-semibold text-sm mb-4 text-zinc-300">Product</h4>
-              <ul className="space-y-3 text-sm text-zinc-500">
+              <h4 className="text-xs font-medium text-white/80 uppercase tracking-widest mb-4">Product</h4>
+              <ul className="space-y-2.5 text-sm text-white/60">
                 <li><button onClick={() => navigate('/how-it-works')} className="hover:text-white transition-colors">How it works</button></li>
                 <li><a href="#agents" className="hover:text-white transition-colors">Agents</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Status</a></li>
+                <li><a href="https://github.com/Drufiy/Prash" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">GitHub</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-sm mb-4 text-zinc-300">Company</h4>
-              <ul className="space-y-3 text-sm text-zinc-500">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
+              <h4 className="text-xs font-medium text-white/80 uppercase tracking-widest mb-4">Company</h4>
+              <ul className="space-y-2.5 text-sm text-white/60">
+                <li><a href="https://x.com/Drufiy" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Twitter/X</a></li>
+                <li><a href="mailto:hi@drufiy.com" className="hover:text-white transition-colors">Contact</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-sm mb-4 text-zinc-300">Legal</h4>
-              <ul className="space-y-3 text-sm text-zinc-500">
+              <h4 className="text-xs font-medium text-white/80 uppercase tracking-widest mb-4">Legal</h4>
+              <ul className="space-y-2.5 text-sm text-white/60">
                 <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Security</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Twitter / X</a></li>
               </ul>
             </div>
           </div>
-          <div className="text-xs text-zinc-600">
-            <p>© 2026 Drufiy, Inc. All rights reserved.</p>
+          <div className="text-xs text-white/40 flex items-center justify-between">
+            <p>© 2026 Drufiy, Inc.</p>
+            {/* TODO: Add GitHub star count badge */}
           </div>
         </div>
       </footer>
