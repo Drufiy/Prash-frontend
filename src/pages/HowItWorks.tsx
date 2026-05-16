@@ -15,10 +15,10 @@ export default function HowItWorks() {
       icon: GitBranch,
       title: 'Install the GitHub App',
       description:
-        'Connect Prash to your repository in under 30 seconds. Prash requests only the permissions it needs — read access to workflows and write access to pull requests.',
+        'Connect Prash to your repository in under 30 seconds. Prash only asks for the permissions it needs: read access to workflows and write access to pull requests.',
       details: [
         'OAuth once to authorize your GitHub organization',
-        'Webhook installed automatically — no manual config',
+        'Webhook installed automatically, no manual config needed',
         'Works alongside your existing CI setup',
         'Supports monorepos and matrix builds',
       ],
@@ -47,7 +47,7 @@ export default function HowItWorks() {
       icon: Brain,
       title: 'AI-powered root cause analysis',
       description:
-        'Prash processes CI logs through specialized AI models trained on millions of CI failure patterns. It identifies the exact root cause — not just the symptom.',
+        'Prash processes CI logs through specialized AI models trained on millions of CI failure patterns. It finds the actual root cause, not just the symptom.',
       details: [
         'Distinguishes flaky tests from real failures',
         'Identifies dependency conflicts, env issues, code bugs',
@@ -81,7 +81,7 @@ export default function HowItWorks() {
       description:
         'Prash waits for the full CI pipeline to pass on the fix branch. Only once all checks pass does it mark the failure as resolved. No guessing.',
       details: [
-        'All CI jobs must pass — not just the failing one',
+        'All CI jobs must pass, not just the one that was failing',
         'Monitors the fix branch for new failures',
         'Automatically closes the incident once merged',
         'Posts a summary back to the original failing run',
@@ -168,7 +168,7 @@ export default function HowItWorks() {
             </span>
           </h1>
           <p className="text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-            A step-by-step walkthrough of how Prash detects CI failures, diagnoses root causes, generates fixes, and verifies they work — all automatically.
+            Here's how Prash detects CI failures, diagnoses root causes, generates fixes, and verifies they work. All automatically.
           </p>
         </div>
       </section>
@@ -289,7 +289,7 @@ export default function HowItWorks() {
               {
                 icon: Brain,
                 title: 'AI trained on CI patterns',
-                desc: 'Models trained on millions of CI failures across languages, frameworks, and runtime environments — not a generic LLM.',
+                desc: 'Models trained on millions of CI failures across languages, frameworks, and runtime environments. Not just a generic LLM.',
               },
               {
                 icon: GitMerge,

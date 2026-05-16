@@ -268,7 +268,7 @@ export default function Landing() {
 
             <AnimatedSection className="space-y-3">
               {[
-                { n: '01', title: 'Connect your repo', desc: 'Install via GitHub App — takes 30 seconds and works with any existing workflow.', icon: GitBranch },
+                { n: '01', title: 'Connect your repo', desc: 'Install via GitHub App in 30 seconds. Works with any existing workflow.', icon: GitBranch },
                 { n: '02', title: 'Detect & diagnose', desc: 'Prash watches your GitHub Actions and analyzes failures instantly as they happen.', icon: Search },
                 { n: '03', title: 'Fix & create PR', desc: 'Automatic fixes are generated, tested, and a PR is opened and ready for review.', icon: GitPullRequest },
                 { n: '04', title: 'Verify & ship', desc: 'All CI tests pass before Prash marks the fix verified. No false positives.', icon: CheckCircle2 },
@@ -298,7 +298,7 @@ export default function Landing() {
             <motion.p variants={fadeUp} className="text-yellow-400 text-sm font-medium uppercase tracking-widest mb-3">Why Prash</motion.p>
             <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight">Built for developers by developers</motion.h2>
             <motion.p variants={fadeUp} className="text-zinc-400 text-base sm:text-lg max-w-xl mx-auto">
-              Built by teenagers who don't have a CS degree — but do have a solution to your late-night debugging.
+              Built by people who've actually debugged CI for hours at 2 AM. We know your pain.
             </motion.p>
           </AnimatedSection>
 
@@ -312,7 +312,7 @@ export default function Landing() {
               {
                 icon: Code2,
                 title: 'Automated fixes',
-                desc: 'Fixes are generated and validated through your full CI pipeline — no rubber stamp reviews.',
+                desc: 'Fixes are generated and validated through your full CI pipeline. No rubber stamping.',
               },
               {
                 icon: Cpu,
@@ -322,7 +322,7 @@ export default function Landing() {
               {
                 icon: GitBranch,
                 title: 'Any workflow',
-                desc: 'Works with any GitHub Actions workflow — monorepos, matrix builds, custom runners.',
+                desc: 'Works with any GitHub Actions workflow: monorepos, matrix builds, custom runners.',
               },
             ].map(({ icon: Icon, title, desc }, idx) => (
               <motion.div key={idx} variants={fadeUp} whileHover={{ y: -3, transition: { duration: 0.2 } }} className="flex gap-4 p-5 rounded-2xl border border-white/5 hover:border-yellow-400/20 hover:bg-white/[0.02] transition-colors">
