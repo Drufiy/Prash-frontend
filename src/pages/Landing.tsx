@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight, Code2, Cpu, ChevronRight,
@@ -41,29 +41,10 @@ function AnimatedSection({ children, className }: { children: React.ReactNode; c
 export default function Landing() {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
-  const heroRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!loading && user) navigate('/dashboard', { replace: true })
   }, [user, loading, navigate])
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!heroRef.current) return
-      const rect = heroRef.current.getBoundingClientRect()
-      setMousePos({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      })
-    }
-
-    const hero = heroRef.current
-    if (hero) {
-      hero.addEventListener('mousemove', handleMouseMove)
-      return () => hero.removeEventListener('mousemove', handleMouseMove)
-    }
-  }, [])
 
   const agents = [
     {
@@ -143,17 +124,7 @@ export default function Landing() {
       </nav>
 
       {/* Hero */}
-      <section ref={heroRef} className="relative px-4 sm:px-6 pt-32 sm:pt-40 pb-20 overflow-hidden">
-        {/* Cursor-following glow - only on desktop, positioned absolutely within hero */}
-        <motion.div
-          className="pointer-events-none absolute w-80 h-80 bg-yellow-400 rounded-full mix-blend-screen blur-3xl hidden lg:block"
-          animate={{
-            x: mousePos.x - 160,
-            y: mousePos.y - 160,
-            opacity: 0.03,
-          }}
-          transition={{ type: 'tween', duration: 0.3 }}
-        />
+      <section className="relative px-4 sm:px-6 pt-32 sm:pt-40 pb-20 overflow-hidden">
         <div className="max-w-4xl mx-auto relative z-10">
           <motion.div
             variants={stagger}
