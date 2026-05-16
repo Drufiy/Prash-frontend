@@ -206,18 +206,76 @@ export default function Landing() {
               </button>
             </motion.div>
 
-            {/* Product screenshot placeholder */}
+            {/* Product screenshot - Dashboard */}
             <motion.div
               variants={fadeUp}
-              className="relative rounded-xl overflow-hidden border border-white/10 bg-black/40"
+              className="relative rounded-xl overflow-hidden border border-white/6 bg-[#0e0e0e]"
             >
-              {/* TODO: REPLACE WITH REAL PR SCREENSHOT (1200x700) */}
-              <div className="aspect-video bg-gradient-to-b from-white/[0.08] to-white/[0.02] flex items-center justify-center">
-                <div className="text-center">
-                  <p className="text-white/40 text-sm">REPLACE WITH REAL PR SCREENSHOT</p>
-                  <p className="text-white/25 text-xs mt-1">1200x700 — showing Prash opening a PR</p>
+              {/* Dashboard UI */}
+              <div className="aspect-video flex flex-col">
+                {/* Header */}
+                <div className="bg-black/60 border-b border-white/6 px-6 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <div className="w-2 h-2 rounded-full bg-purple-500" />
+                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                    </div>
+                    <span className="text-xs text-white/40 font-mono">Aradhya648/Iris</span>
+                  </div>
+                  <div className="text-xs text-white/40">3 minutes ago</div>
+                </div>
+
+                {/* Status flow */}
+                <div className="bg-black/40 border-b border-white/6 px-6 py-4 flex items-center gap-8">
+                  <div className="text-center">
+                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500 mx-auto mb-1" />
+                    <p className="text-xs text-white/60">Detected</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500 mx-auto mb-1 flex items-center justify-center">
+                      <span className="text-xs text-white font-medium">2</span>
+                    </div>
+                    <p className="text-xs text-white/60">Diagnosing</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 mx-auto mb-1" />
+                    <p className="text-xs text-white/60">Fix Ready</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 mx-auto mb-1" />
+                    <p className="text-xs text-white/60">Applying</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 mx-auto mb-1" />
+                    <p className="text-xs text-white/60">Verified</p>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 flex">
+                  {/* Left: CI Logs */}
+                  <div className="flex-1 border-r border-white/6 p-4 overflow-hidden">
+                    <p className="text-xs text-white/40 uppercase tracking-widest mb-3">CI Logs</p>
+                    <div className="font-mono text-xs text-white/50 space-y-0.5">
+                      <div>1  === 0_test.txt ===</div>
+                      <div>2  2026-05-10T11:44 Current runner version: '2.334.0'</div>
+                      <div>3  2026-05-10T11:44 ##[group]Image Provisioner</div>
+                      <div>4  2026-05-10T11:44 Hosted Compute Agent</div>
+                      <div className="text-red-500/80">5  Error: Cannot read property 'status' of undefined</div>
+                      <div>6  at handleWebhook (src/api.ts:45)</div>
+                    </div>
+                  </div>
+
+                  {/* Right: AI Analysis */}
+                  <div className="flex-1 p-4 bg-black/40 flex flex-col items-center justify-center">
+                    <p className="text-xs text-white/40 uppercase tracking-widest mb-3">AI Analysis</p>
+                    <div className="animate-spin w-4 h-4 border-2 border-white/20 border-t-yellow-400 rounded-full mb-3" />
+                    <p className="text-xs text-white/60">Prash is analyzing...</p>
+                  </div>
                 </div>
               </div>
+
               {/* Yellow glow underneath */}
               <div className="absolute -bottom-24 left-1/2 -translate-x-1/2 w-96 h-48 bg-yellow-400 opacity-[0.08] blur-3xl pointer-events-none" />
             </motion.div>
