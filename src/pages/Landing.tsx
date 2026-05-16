@@ -144,13 +144,13 @@ export default function Landing() {
 
       {/* Hero */}
       <section ref={heroRef} className="relative px-4 sm:px-6 pt-32 sm:pt-40 pb-20 overflow-hidden">
-        {/* Cursor-following glow */}
+        {/* Cursor-following glow - only on desktop, positioned absolutely within hero */}
         <motion.div
-          className="pointer-events-none fixed w-80 h-80 bg-yellow-400 rounded-full opacity-0 mix-blend-screen blur-3xl"
+          className="pointer-events-none absolute w-80 h-80 bg-yellow-400 rounded-full mix-blend-screen blur-3xl hidden lg:block"
           animate={{
             x: mousePos.x - 160,
             y: mousePos.y - 160,
-            opacity: 0.04,
+            opacity: 0.03,
           }}
           transition={{ type: 'tween', duration: 0.3 }}
         />
