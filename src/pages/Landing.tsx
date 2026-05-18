@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight, Code2, Cpu, ChevronRight,
-  Clock, Search, GitPullRequest, CheckCircle2,
+  Clock,
 } from 'lucide-react'
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { posthog } from '@/lib/posthog'
 import BeforeAfterComparison from '@/components/BeforeAfterComparison'
 import HowItWorksSticky from '@/components/HowItWorksSticky'
+import { DiagnosisIcon, FixesIcon, VerifyIcon } from '@/components/AgentIcons'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -48,28 +49,22 @@ export default function Landing() {
 
   const agents = [
     {
-      icon: Search,
+      icon: DiagnosisIcon,
       title: 'Failure Diagnosis',
       description: 'Analyzes CI logs and pinpoints root causes automatically within seconds of a failure.',
       badge: 'On CI failure',
-      color: 'from-yellow-500/20 to-transparent',
-      borderHover: 'hover:border-yellow-500/50',
     },
     {
-      icon: GitPullRequest,
+      icon: FixesIcon,
       title: 'Automated Fixes',
       description: 'Generates validated fixes and opens a ready-to-merge pull request automatically.',
       badge: 'Automatic',
-      color: 'from-yellow-400/20 to-transparent',
-      borderHover: 'hover:border-yellow-400/50',
     },
     {
-      icon: CheckCircle2,
+      icon: VerifyIcon,
       title: 'PR Verification',
       description: 'Runs the full CI pipeline on every fix before marking it verified and complete.',
       badge: 'On every run',
-      color: 'from-yellow-300/20 to-transparent',
-      borderHover: 'hover:border-yellow-300/50',
     },
   ]
 
@@ -261,9 +256,11 @@ export default function Landing() {
       <section id="agents" className="px-4 sm:px-6 py-32 border-b border-white/6">
         <div className="max-w-7xl mx-auto">
           <AnimatedSection className="text-center mb-16">
-            <motion.p variants={fadeUp} className="text-yellow-400 text-xs font-medium uppercase tracking-widest mb-3">How it works</motion.p>
-            <motion.h2 variants={fadeUp} className="text-4xl font-medium tracking-tight mb-6 text-white">Three specialized agents</motion.h2>
-            <motion.p variants={fadeUp} className="text-white/65 max-w-2xl mx-auto text-base">
+            <motion.p variants={fadeUp} className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">How it works</motion.p>
+            <motion.h2 variants={fadeUp} className="text-5xl font-semibold tracking-tight mb-6 text-white leading-tight">
+              Three specialized agents
+            </motion.h2>
+            <motion.p variants={fadeUp} className="text-white/60 max-w-2xl mx-auto text-base leading-relaxed">
               Working in concert to diagnose failures, generate fixes, and verify every solution passes CI.
             </motion.p>
           </AnimatedSection>
@@ -276,37 +273,53 @@ export default function Landing() {
                 <motion.div
                   key={idx}
                   variants={fadeUp}
-                  className={`group relative rounded-xl border border-white/6 bg-[#0e0e0e] overflow-hidden transition-all duration-300 hover:border-yellow-400/30 hover:shadow-lg hover:shadow-yellow-400/10 ${
+                  whileHover={{ y: -4 }}
+                  className={`group relative rounded-xl border border-white/6 bg-[#0e0e0e] overflow-hidden transition-all duration-300 hover:border-yellow-400/40 hover:shadow-2xl hover:shadow-yellow-400/15 ${
                     isMiddle ? 'md:col-span-2' : 'md:col-span-1'
                   }`}
                 >
-                  <div className="p-6 flex flex-col h-full">
-                    <div className="w-10 h-10 rounded-lg bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center mb-4">
-                      <Icon className="w-5 h-5 text-yellow-400" />
+                  {/* Hover glow effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/0 to-yellow-400/0 group-hover:from-yellow-400/5 group-hover:to-yellow-400/0 transition-all duration-300 pointer-events-none" />
+
+                  <div className="p-7 flex flex-col h-full relative z-10">
+                    {/* Icon */}
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-yellow-400/20 to-yellow-400/5 border border-yellow-400/30 flex items-center justify-center mb-5 group-hover:border-yellow-400/50 transition-all duration-300">
+                      <Icon className="w-6 h-6 text-yellow-400" />
                     </div>
-                    <span className="inline-block text-[10px] px-2.5 py-1 rounded-full bg-yellow-400/10 text-yellow-400/80 border border-yellow-400/20 mb-4 font-medium w-fit">
+
+                    {/* Badge */}
+                    <span className="inline-block text-[11px] px-3 py-1.5 rounded-full bg-yellow-400/15 text-yellow-300 border border-yellow-400/30 mb-5 font-semibold uppercase tracking-wider w-fit group-hover:bg-yellow-400/20 transition-all duration-300">
                       {agent.badge}
                     </span>
-                    <h3 className="font-medium text-base mb-3 text-white">{agent.title}</h3>
-                    <p className="text-sm text-white/60 leading-relaxed flex-1">{agent.description}</p>
 
+                    {/* Title */}
+                    <h3 className="text-lg font-semibold mb-3 text-white leading-tight group-hover:text-white transition-colors">
+                      {agent.title}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="text-sm text-white/55 leading-relaxed flex-1 group-hover:text-white/65 transition-colors">
+                      {agent.description}
+                    </p>
+
+                    {/* Code example for middle card */}
                     {isMiddle && (
-                      <div className="mt-8 pt-6 border-t border-white/6">
-                        <p className="text-xs text-white/40 uppercase tracking-widest font-medium mb-3">Example fix</p>
-                        <div className="bg-black/60 rounded-lg p-4 font-mono text-xs space-y-1.5 overflow-x-auto">
-                          <div className="text-white/30">
+                      <div className="mt-8 pt-6 border-t border-white/10">
+                        <p className="text-xs text-white/40 uppercase tracking-widest font-semibold mb-4">Example fix</p>
+                        <div className="bg-black/80 rounded-lg p-4 font-mono text-xs space-y-1 overflow-x-auto border border-white/5 group-hover:border-white/10 transition-colors">
+                          <div className="text-white/25">
                             <span>@@ -42,3 +42,5 @@ export async function</span>
                           </div>
-                          <div className="text-white/40">
+                          <div className="text-white/35">
                             <span>  const response = await fetch(url)</span>
                           </div>
-                          <div className="text-emerald-500/80">
+                          <div className="text-emerald-500/90">
                             <span>+ if (!response.ok) {'{'}return handle_error(response){'}'}  </span>
                           </div>
-                          <div className="text-emerald-500/80">
+                          <div className="text-emerald-500/90">
                             <span>+ return response.json()</span>
                           </div>
-                          <div className="mt-3 text-emerald-400 text-xs">
+                          <div className="mt-3 text-emerald-400/90 text-xs font-medium">
                             <span>✓ All checks passed</span>
                           </div>
                         </div>
