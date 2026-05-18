@@ -73,10 +73,7 @@ export default function Landing() {
 
       {/* Background base & noise overlay */}
       <div className="fixed inset-0 bg-[#0a0a0a] pointer-events-none" />
-      <div
-        className="fixed inset-0 opacity-[0.02] pointer-events-none mix-blend-overlay"
-        style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'64\' height=\'64\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' result=\'noise\'\/%3E%3C/filter%3E%3Crect width=\'64\' height=\'64\' fill=\'white\' filter=\'url(%23noise)\'\/%3E%3C/svg%3E")' }}
-      />
+      <div className="fixed inset-0 bg-noise" />
       {/* Hero radial glow */}
       <div className="fixed top-32 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-yellow-400 opacity-[0.06] blur-[120px] pointer-events-none rounded-full" />
 
@@ -119,7 +116,7 @@ export default function Landing() {
       </nav>
 
       {/* Hero */}
-      <section className="relative px-4 sm:px-6 pt-32 sm:pt-40 pb-20 overflow-hidden">
+      <section className="relative px-4 sm:px-6 pt-20 sm:pt-32 lg:pt-40 pb-16 sm:pb-24 overflow-hidden">
         <div className="max-w-4xl mx-auto relative z-10">
           <motion.div
             variants={stagger}
@@ -138,7 +135,7 @@ export default function Landing() {
             {/* Main headline */}
             <motion.h1
               variants={fadeUp}
-              className="text-5xl sm:text-6xl lg:text-6xl font-medium tracking-tighter leading-[1.1] mb-8 text-white"
+              className="text-5xl sm:text-6xl font-semibold tracking-tight leading-[1.08] mb-8 text-white"
             >
               CI that{' '}
               <span className="relative">
@@ -165,7 +162,7 @@ export default function Landing() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
               <button
-                onClick={() => { posthog.capture('demo_viewed', { source: 'hero_cta' }); window.location.href = '/dashboard?demo=true' }}
+                onClick={() => { posthog.capture('demo_viewed', { source: 'hero_cta' }); navigate('/dashboard?demo=true') }}
                 className="text-white/65 hover:text-white transition-colors text-base font-medium"
               >
                 Watch 60s demo →
@@ -253,11 +250,11 @@ export default function Landing() {
       <BeforeAfterComparison />
 
       {/* Agents - Asymmetric Layout */}
-      <section id="agents" className="px-4 sm:px-6 py-32 border-b border-white/6">
+      <section id="agents" className="px-4 sm:px-6 py-16 sm:py-24 lg:py-32 border-b border-white/6">
         <div className="max-w-7xl mx-auto">
           <AnimatedSection className="text-center mb-16">
-            <motion.p variants={fadeUp} className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">How it works</motion.p>
-            <motion.h2 variants={fadeUp} className="text-5xl font-semibold tracking-tight mb-6 text-white leading-tight">
+            <motion.p variants={fadeUp} className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">Three agents</motion.p>
+            <motion.h2 variants={fadeUp} className="text-4xl font-semibold tracking-tight mb-6 text-white leading-snug">
               Three specialized agents
             </motion.h2>
             <motion.p variants={fadeUp} className="text-white/60 max-w-2xl mx-auto text-base leading-relaxed">
@@ -281,7 +278,7 @@ export default function Landing() {
                   {/* Hover glow effect */}
                   <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/0 to-yellow-400/0 group-hover:from-yellow-400/5 group-hover:to-yellow-400/0 transition-all duration-300 pointer-events-none" />
 
-                  <div className="p-7 flex flex-col h-full relative z-10">
+                  <div className="p-6 flex flex-col h-full relative z-10">
                     {/* Icon */}
                     <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-yellow-400/20 to-yellow-400/5 border border-yellow-400/30 flex items-center justify-center mb-5 group-hover:border-yellow-400/50 transition-all duration-300">
                       <Icon className="w-6 h-6 text-yellow-400" />
@@ -337,11 +334,11 @@ export default function Landing() {
       <HowItWorksSticky />
 
       {/* Why Prash */}
-      <section className="px-4 sm:px-6 py-32 border-b border-white/6">
+      <section className="px-4 sm:px-6 py-16 sm:py-24 lg:py-32 border-b border-white/6">
         <div className="max-w-7xl mx-auto">
           <AnimatedSection className="text-center mb-16">
-            <motion.p variants={fadeUp} className="text-yellow-400 text-xs font-medium uppercase tracking-widest mb-3">Why Prash</motion.p>
-            <motion.h2 variants={fadeUp} className="text-4xl font-medium tracking-tight mb-6 text-white">Built for the 2am CI failure</motion.h2>
+            <motion.p variants={fadeUp} className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">Why Prash</motion.p>
+            <motion.h2 variants={fadeUp} className="text-4xl font-semibold tracking-tight mb-6 text-white leading-snug">Built for the 2am CI failure</motion.h2>
             <motion.p variants={fadeUp} className="text-white/65 text-base max-w-xl mx-auto">
               When your builds break in the middle of a sprint.
             </motion.p>
@@ -375,7 +372,7 @@ export default function Landing() {
                   </div>
                   <div className="text-lg font-medium text-yellow-400">{stat}</div>
                 </div>
-                <h3 className="font-medium text-base mb-2 text-white">{title}</h3>
+                <h3 className="font-semibold text-lg mb-2 text-white leading-snug">{title}</h3>
                 <p className="text-sm text-white/60 leading-relaxed">{desc}</p>
               </motion.div>
             ))}
@@ -385,11 +382,11 @@ export default function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="px-4 sm:px-6 py-32">
+      <section className="px-4 sm:px-6 py-16 sm:py-24 lg:py-32">
         <div className="max-w-3xl mx-auto text-center relative">
           <div className="absolute -inset-20 bg-yellow-400/5 blur-3xl rounded-full pointer-events-none" />
           <AnimatedSection className="relative z-10">
-            <motion.h2 variants={fadeUp} className="text-5xl font-medium tracking-tight mb-6 text-white">
+            <motion.h2 variants={fadeUp} className="text-4xl font-semibold tracking-tight mb-6 text-white leading-snug">
               Stop debugging CI
             </motion.h2>
             <motion.p variants={fadeUp} className="text-white/65 text-base mb-10">

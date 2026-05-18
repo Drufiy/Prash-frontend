@@ -1,5 +1,5 @@
-import { useRef } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { useRef, useState } from 'react'
+import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion'
 import { GitBranch, Search, GitPullRequest, CheckCircle2 } from 'lucide-react'
 
 const steps = [
@@ -143,6 +143,7 @@ const VisualState = ({ state }: { state: string }) => {
 
 export default function HowItWorksSticky() {
   const containerRef = useRef(null)
+  const [activeStep, setActiveStep] = useState(0)
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start 0.2', 'end 0.8'],
@@ -151,12 +152,17 @@ export default function HowItWorksSticky() {
   // Map scroll progress to step index (0-3)
   const stepIndex = useTransform(scrollYProgress, [0, 1], [0, 3])
 
+  // Sync MotionValue changes to state for reactive rendering
+  useMotionValueEvent(stepIndex, 'change', (val) => {
+    setActiveStep(Math.round(val as number))
+  })
+
   return (
-    <section ref={containerRef} className="relative px-4 sm:px-6 py-32 border-b border-white/6">
+    <section ref={containerRef} className="relative px-4 sm:px-6 py-16 sm:py-24 lg:py-32 border-b border-white/6">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <motion.p className="text-yellow-400 text-xs font-medium uppercase tracking-widest mb-4">How it works</motion.p>
-          <motion.h2 className="text-4xl font-medium tracking-tight mb-6 text-white">
+          <motion.p className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">How it works</motion.p>
+          <motion.h2 className="text-4xl font-semibold tracking-tight mb-6 text-white leading-snug">
             From failure to fix in four steps
           </motion.h2>
         </div>
@@ -165,8 +171,8 @@ export default function HowItWorksSticky() {
           {/* Left: Sticky visual state */}
           <div className="hidden lg:block lg:sticky lg:top-32 lg:h-fit">
             <div className="aspect-square">
-              <motion.div key={`state-${Math.round(stepIndex.get())}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                <VisualState state={steps[Math.round(stepIndex.get())].state} />
+              <motion.div key={`state-${activeStep}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                <VisualState state={steps[activeStep].state} />
               </motion.div>
             </div>
           </div>
@@ -191,10 +197,10 @@ export default function HowItWorksSticky() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-xs text-yellow-400/60 font-mono font-medium">{step.number}</span>
-                      <h3 className="text-lg font-medium text-white">{step.title}</h3>
+                      <span className="text-xs text-yellow-400/60 font-mono font-semibold">{step.number}</span>
+                      <h3 className="text-lg font-semibold text-white leading-snug">{step.title}</h3>
                     </div>
-                    <p className="text-white/60 text-sm leading-relaxed">{step.description}</p>
+                    <p className="text-white/65 text-sm leading-relaxed">{step.description}</p>
                   </div>
                 </motion.div>
               )

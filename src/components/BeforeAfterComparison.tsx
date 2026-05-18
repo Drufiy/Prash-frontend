@@ -2,8 +2,18 @@ import { CheckCircle2 } from 'lucide-react'
 
 export default function BeforeAfterComparison() {
   return (
-    <section className="relative px-4 sm:px-6 py-32 border-b border-white/6">
-      <div className="max-w-6xl mx-auto relative z-10">
+    <section className="relative px-4 sm:px-6 py-16 sm:py-24 lg:py-32 border-b border-white/6">
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Section header */}
+        <div className="text-center mb-16">
+          <p className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">Before / After</p>
+          <h2 className="text-4xl font-semibold tracking-tight text-white leading-snug mb-6">
+            See the difference
+          </h2>
+          <p className="text-white/65 text-base max-w-2xl mx-auto leading-relaxed">
+            CI failures vs. Prash-automated fixes — watch how we transform errors into ready-to-merge PRs.
+          </p>
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
           {/* Before: CI Log Failure */}
           <div className="relative">
