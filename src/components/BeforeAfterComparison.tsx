@@ -1,22 +1,57 @@
 import { CheckCircle2 } from 'lucide-react'
+import { motion, useInView } from 'framer-motion'
+import { useRef } from 'react'
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+}
+
+const slideInLeft = {
+  hidden: { opacity: 0, x: -20 },
+  show: { opacity: 1, x: 0, transition: { duration: 0.5 } },
+}
+
+const slideInRight = {
+  hidden: { opacity: 0, x: 20 },
+  show: { opacity: 1, x: 0, transition: { duration: 0.5 } },
+}
+
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.1 } },
+}
 
 export default function BeforeAfterComparison() {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: '-100px' })
+
   return (
-    <section className="relative px-4 sm:px-6 py-16 sm:py-24 lg:py-32 border-b border-white/6">
+    <section className="relative px-4 sm:px-6 py-16 sm:py-24 lg:py-32 border-b border-white/6" ref={ref}>
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Section header */}
-        <div className="text-center mb-16">
-          <p className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">Before / After</p>
-          <h2 className="text-4xl font-semibold tracking-tight text-white leading-snug mb-6">
+        <motion.div
+          className="text-center mb-16"
+          variants={stagger}
+          initial="hidden"
+          animate={inView ? 'show' : 'hidden'}
+        >
+          <motion.p variants={fadeUp} className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">Before / After</motion.p>
+          <motion.h2 variants={fadeUp} className="text-4xl font-semibold tracking-tight text-white leading-snug mb-6">
             See the difference
-          </h2>
-          <p className="text-white/65 text-base max-w-2xl mx-auto leading-relaxed">
+          </motion.h2>
+          <motion.p variants={fadeUp} className="text-white/65 text-base max-w-2xl mx-auto leading-relaxed">
             CI failures vs. Prash-automated fixes — watch how we transform errors into ready-to-merge PRs.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+          </motion.p>
+        </motion.div>
+        <motion.div
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8"
+          variants={stagger}
+          initial="hidden"
+          animate={inView ? 'show' : 'hidden'}
+        >
           {/* Before: CI Log Failure */}
-          <div className="relative">
+          <motion.div variants={slideInLeft} className="relative">
             <div className="text-xs font-medium text-white/40 uppercase tracking-widest mb-3">Failed CI</div>
             <div className="bg-[#0e0e0e] border border-white/6 rounded-xl overflow-hidden">
               <div className="bg-black/40 border-b border-white/6 px-4 py-3 flex items-center gap-2">
@@ -53,17 +88,23 @@ export default function BeforeAfterComparison() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Prash badge between */}
-          <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20, duration: 0.4 }}
+            viewport={{ once: true }}
+            className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20"
+          >
             <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#0a0a0a] border border-yellow-400/40 shadow-xl">
               <div className="w-1 h-1 rounded-full bg-yellow-400" />
             </div>
-          </div>
+          </motion.div>
 
           {/* After: Prash PR */}
-          <div className="relative">
+          <motion.div variants={slideInRight} className="relative">
             <div className="text-xs font-medium text-white/40 uppercase tracking-widest mb-3">Prash Fix</div>
             <div className="bg-[#0e0e0e] border border-white/6 rounded-xl overflow-hidden">
               <div className="bg-black/40 border-b border-white/6 px-4 py-3 flex items-center justify-between">
@@ -104,8 +145,8 @@ export default function BeforeAfterComparison() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   )

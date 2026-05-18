@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight, Code2, Cpu, ChevronRight,
@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { posthog } from '@/lib/posthog'
 import BeforeAfterComparison from '@/components/BeforeAfterComparison'
 import HowItWorksSticky from '@/components/HowItWorksSticky'
+import StatCounter from '@/components/StatCounter'
 import { DiagnosisIcon, FixesIcon, VerifyIcon } from '@/components/AgentIcons'
 
 const fadeUp = {
@@ -42,10 +43,19 @@ function AnimatedSection({ children, className }: { children: React.ReactNode; c
 export default function Landing() {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
+  const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
     if (!loading && user) navigate('/dashboard', { replace: true })
   }, [user, loading, navigate])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 40)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const agents = [
     {
@@ -71,14 +81,27 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white antialiased relative">
 
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-yellow-400 focus:text-black focus:rounded-lg focus:font-semibold">
+        Skip to main content
+      </a>
+
       {/* Background base & noise overlay */}
-      <div className="fixed inset-0 bg-[#0a0a0a] pointer-events-none" />
-      <div className="fixed inset-0 bg-noise" />
+      <div className="fixed inset-0 bg-[#0a0a0a] pointer-events-none" aria-hidden="true" />
+      <div className="fixed inset-0 bg-noise" aria-hidden="true" />
       {/* Hero radial glow */}
-      <div className="fixed top-32 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-yellow-400 opacity-[0.06] blur-[120px] pointer-events-none rounded-full" />
+      <motion.div
+        className="fixed top-32 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-yellow-400 blur-[120px] pointer-events-none rounded-full"
+        animate={{ opacity: [0.04, 0.08, 0.04] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        aria-hidden="true"
+      />
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b border-white/6 bg-[#0a0a0a]/95 backdrop-blur-xl">
+      <nav aria-label="Main navigation" className={`sticky top-0 z-50 backdrop-blur-xl transition-all duration-300 ${
+        scrolled
+          ? 'border-b border-white/10 bg-[#0a0a0a]/98 shadow-sm shadow-black/20'
+          : 'border-b border-white/0 bg-[#0a0a0a]/95'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between relative z-10">
           <div className="flex items-center gap-2.5">
             <img src="/logo.svg" alt="Prash" className="w-6 h-6 rounded-md object-contain" />
@@ -88,35 +111,44 @@ export default function Landing() {
 
           <div className="hidden md:flex items-center gap-8 text-sm text-white/60">
             <button
+              type="button"
               onClick={() => navigate('/how-it-works')}
-              className="hover:text-white transition-colors"
+              className="hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-yellow-400/50 focus-visible:outline-none rounded-lg"
             >
               How it works
             </button>
-            <a href="#agents" className="hover:text-white transition-colors">Agents</a>
+            <a href="#agents" className="hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-yellow-400/50 focus-visible:outline-none rounded-lg">Agents</a>
           </div>
 
           <div className="flex items-center gap-3">
             <button
+              type="button"
               onClick={() => navigate('/login')}
-              className="text-sm text-white/60 hover:text-white transition-colors hidden sm:block"
+              className="text-sm text-white/60 hover:text-white transition-colors hidden sm:block focus-visible:ring-2 focus-visible:ring-yellow-400/50 focus-visible:outline-none rounded-lg"
             >
               Sign in
             </button>
-            <Button
-              size="sm"
-              className="bg-yellow-400 hover:bg-yellow-300 text-black font-medium rounded-lg px-4 h-8 text-sm"
-              onClick={() => navigate('/login')}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.96 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             >
-              Get started
-              <ChevronRight className="ml-1 h-3 w-3" />
-            </Button>
+              <Button
+                size="sm"
+                className="bg-yellow-400 hover:bg-yellow-300 text-black font-medium rounded-lg px-4 h-8 text-sm"
+                onClick={() => navigate('/login')}
+              >
+                Get started
+                <ChevronRight className="ml-1 h-3 w-3" />
+              </Button>
+            </motion.div>
           </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="relative px-4 sm:px-6 pt-20 sm:pt-32 lg:pt-40 pb-16 sm:pb-24 overflow-hidden">
+      <main id="main-content">
+      <section aria-label="Hero" className="relative px-4 sm:px-6 pt-20 sm:pt-32 lg:pt-40 pb-16 sm:pb-24 overflow-hidden">
         <div className="max-w-4xl mx-auto relative z-10">
           <motion.div
             variants={stagger}
@@ -127,7 +159,7 @@ export default function Landing() {
             {/* Status pill */}
             <motion.div variants={fadeUp} className="mb-8 flex items-center justify-center">
               <div className="flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.03]">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
                 <span className="text-xs text-white/65 font-medium">Early access · onboarding design partners</span>
               </div>
             </motion.div>
@@ -153,20 +185,38 @@ export default function Landing() {
 
             {/* CTA buttons */}
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-              <Button
-                size="lg"
-                className="bg-yellow-400 hover:bg-yellow-300 text-black font-medium px-8 h-12 text-base rounded-lg transition-all"
-                onClick={() => navigate('/login')}
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 17 }}
               >
-                Install the GitHub App
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-              <button
+                <Button
+                  size="lg"
+                  className="bg-yellow-400 hover:bg-yellow-300 text-black font-medium px-8 h-12 text-base rounded-lg transition-all"
+                  onClick={() => navigate('/login')}
+                >
+                  Install the GitHub App
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </motion.div>
+              <motion.button
+                type="button"
                 onClick={() => { posthog.capture('demo_viewed', { source: 'hero_cta' }); navigate('/dashboard?demo=true') }}
-                className="text-white/65 hover:text-white transition-colors text-base font-medium"
+                className="text-white/65 hover:text-white transition-colors text-base font-medium focus-visible:ring-2 focus-visible:ring-yellow-400/50 focus-visible:outline-none rounded-lg"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               >
-                Watch 60s demo →
-              </button>
+                Watch 60s demo{' '}
+                <motion.span
+                  className="inline-block ml-1"
+                  initial={{ x: 0 }}
+                  whileHover={{ x: 4 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                >
+                  →
+                </motion.span>
+              </motion.button>
             </motion.div>
 
             {/* Product screenshot - Dashboard */}
@@ -179,7 +229,7 @@ export default function Landing() {
                 {/* Header */}
                 <div className="bg-black/60 border-b border-white/6 px-6 py-3 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-1.5" aria-hidden="true">
                       <div className="w-2 h-2 rounded-full bg-emerald-500" />
                       <div className="w-2 h-2 rounded-full bg-purple-500" />
                       <div className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -247,10 +297,12 @@ export default function Landing() {
       </section>
 
       {/* Before/After Comparison */}
-      <BeforeAfterComparison />
+      <section aria-label="Before and after comparison">
+        <BeforeAfterComparison />
+      </section>
 
       {/* Agents - Asymmetric Layout */}
-      <section id="agents" className="px-4 sm:px-6 py-16 sm:py-24 lg:py-32 border-b border-white/6">
+      <section id="agents" aria-label="How Prash works" className="px-4 sm:px-6 py-16 sm:py-24 lg:py-32 border-b border-white/6">
         <div className="max-w-7xl mx-auto">
           <AnimatedSection className="text-center mb-16">
             <motion.p variants={fadeUp} className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">Three agents</motion.p>
@@ -334,7 +386,7 @@ export default function Landing() {
       <HowItWorksSticky />
 
       {/* Why Prash */}
-      <section className="px-4 sm:px-6 py-16 sm:py-24 lg:py-32 border-b border-white/6">
+      <section aria-label="Why Prash" className="px-4 sm:px-6 py-16 sm:py-24 lg:py-32 border-b border-white/6">
         <div className="max-w-7xl mx-auto">
           <AnimatedSection className="text-center mb-16">
             <motion.p variants={fadeUp} className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">Why Prash</motion.p>
@@ -365,12 +417,20 @@ export default function Landing() {
                 stat: '0',
               },
             ].map(({ icon: Icon, title, desc, stat }, idx) => (
-              <motion.div key={idx} variants={fadeUp} className="flex flex-col p-6 rounded-xl border border-white/6 bg-[#0e0e0e] hover:border-yellow-400/30 transition-all">
+              <motion.div
+                key={idx}
+                variants={fadeUp}
+                whileHover={{ y: -3 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                className="flex flex-col p-6 rounded-xl border border-white/6 bg-[#0e0e0e] hover:border-yellow-400/30 transition-all"
+              >
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-10 h-10 rounded-lg bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center">
                     <Icon className="w-5 h-5 text-yellow-400" />
                   </div>
-                  <div className="text-lg font-medium text-yellow-400">{stat}</div>
+                  <div className="text-lg font-medium text-yellow-400">
+                    <StatCounter value={stat} />
+                  </div>
                 </div>
                 <h3 className="font-semibold text-lg mb-2 text-white leading-snug">{title}</h3>
                 <p className="text-sm text-white/60 leading-relaxed">{desc}</p>
@@ -382,9 +442,9 @@ export default function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="px-4 sm:px-6 py-16 sm:py-24 lg:py-32">
+      <section aria-label="Get started" className="px-4 sm:px-6 py-16 sm:py-24 lg:py-32">
         <div className="max-w-3xl mx-auto text-center relative">
-          <div className="absolute -inset-20 bg-yellow-400/5 blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute -inset-20 bg-yellow-400/5 blur-3xl rounded-full pointer-events-none" aria-hidden="true" />
           <AnimatedSection className="relative z-10">
             <motion.h2 variants={fadeUp} className="text-4xl font-semibold tracking-tight mb-6 text-white leading-snug">
               Stop debugging CI
@@ -393,21 +453,28 @@ export default function Landing() {
               Free during early access. No credit card.
             </motion.p>
             <motion.div variants={fadeUp}>
-              <Button
-                size="lg"
-                className="bg-yellow-400 hover:bg-yellow-300 text-black font-medium px-10 h-12 text-base rounded-lg transition-all"
-                onClick={() => navigate('/login')}
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 17 }}
               >
-                Install the GitHub App
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+                <Button
+                  size="lg"
+                  className="bg-yellow-400 hover:bg-yellow-300 text-black font-medium px-10 h-12 text-base rounded-lg transition-all"
+                  onClick={() => navigate('/login')}
+                >
+                  Install the GitHub App
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </motion.div>
             </motion.div>
           </AnimatedSection>
         </div>
       </section>
+      </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/6 bg-white/[0.005]">
+      <footer aria-label="Site footer" className="border-t border-white/6 bg-white/[0.005]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-12 pb-12 border-b border-white/6">
             <div className="lg:col-span-2">
@@ -423,9 +490,9 @@ export default function Landing() {
             <div>
               <h4 className="text-xs font-medium text-white/80 uppercase tracking-widest mb-4">Product</h4>
               <ul className="space-y-2.5 text-sm text-white/60">
-                <li><button onClick={() => navigate('/how-it-works')} className="hover:text-white transition-colors">How it works</button></li>
-                <li><a href="#agents" className="hover:text-white transition-colors">Agents</a></li>
-                <li><a href="https://github.com/Drufiy/Prash" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">GitHub</a></li>
+                <li><button type="button" onClick={() => navigate('/how-it-works')} className="hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-yellow-400/50 focus-visible:outline-none rounded-lg">How it works</button></li>
+                <li><a href="#agents" className="hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-yellow-400/50 focus-visible:outline-none rounded-lg">Agents</a></li>
+                <li><a href="https://github.com/Drufiy/Prash" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-yellow-400/50 focus-visible:outline-none rounded-lg">GitHub</a></li>
               </ul>
             </div>
             <div>

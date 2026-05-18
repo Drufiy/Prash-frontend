@@ -161,8 +161,22 @@ export default function HowItWorksSticky() {
     <section ref={containerRef} className="relative px-4 sm:px-6 py-16 sm:py-24 lg:py-32 border-b border-white/6">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <motion.p className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">How it works</motion.p>
-          <motion.h2 className="text-4xl font-semibold tracking-tight mb-6 text-white leading-snug">
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4"
+          >
+            How it works
+          </motion.p>
+          <motion.h2
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            viewport={{ once: true }}
+            className="text-4xl font-semibold tracking-tight mb-6 text-white leading-snug"
+          >
             From failure to fix in four steps
           </motion.h2>
         </div>
@@ -186,9 +200,14 @@ export default function HowItWorksSticky() {
                   key={idx}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
+                  whileHover={{ x: 4 }}
                   transition={{ delay: idx * 0.1, duration: 0.5 }}
                   viewport={{ once: true, margin: '-100px' }}
-                  className="flex gap-6 p-6 rounded-xl border border-white/6 bg-[#0e0e0e] hover:border-yellow-400/30 transition-all"
+                  className={`flex gap-6 p-6 rounded-xl transition-all ${
+                    activeStep === idx
+                      ? 'border-yellow-400/40 bg-[#0e0e0e]/80 shadow-lg shadow-yellow-400/10'
+                      : 'border-white/6 bg-[#0e0e0e] hover:border-yellow-400/30'
+                  }`}
                 >
                   <div className="shrink-0">
                     <div className="w-12 h-12 rounded-lg bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center">
@@ -197,7 +216,11 @@ export default function HowItWorksSticky() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-xs text-yellow-400/60 font-mono font-semibold">{step.number}</span>
+                      <span className={`text-xs font-mono font-semibold transition-colors ${
+                        activeStep === idx ? 'text-yellow-400' : 'text-yellow-400/40'
+                      }`}>
+                        {step.number}
+                      </span>
                       <h3 className="text-lg font-semibold text-white leading-snug">{step.title}</h3>
                     </div>
                     <p className="text-white/65 text-sm leading-relaxed">{step.description}</p>
