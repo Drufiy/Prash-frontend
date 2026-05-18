@@ -33,6 +33,7 @@ function AnimatedSection({ children, className }: { children: React.ReactNode; c
       variants={stagger}
       initial="hidden"
       animate={inView ? 'show' : 'hidden'}
+      viewport={{ once: true }}
       className={className}
     >
       {children}
@@ -396,7 +397,7 @@ export default function Landing() {
             </motion.p>
           </AnimatedSection>
 
-          <AnimatedSection className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
                 icon: Clock,
@@ -419,7 +420,10 @@ export default function Landing() {
             ].map(({ icon: Icon, title, desc, stat }, idx) => (
               <motion.div
                 key={idx}
-                variants={fadeUp}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                viewport={{ once: true, margin: '-100px' }}
                 className="flex flex-col p-6 rounded-xl border border-white/6 bg-[#0e0e0e] hover:border-yellow-400/30 transition-all hover:shadow-lg hover:shadow-yellow-400/10"
               >
                 <div className="flex items-start justify-between mb-4">
@@ -434,7 +438,7 @@ export default function Landing() {
                 <p className="text-sm text-white/60 leading-relaxed">{desc}</p>
               </motion.div>
             ))}
-          </AnimatedSection>
+          </div>
 
         </div>
       </section>
