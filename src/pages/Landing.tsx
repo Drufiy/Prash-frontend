@@ -420,9 +420,7 @@ export default function Landing() {
               <motion.div
                 key={idx}
                 variants={fadeUp}
-                whileHover={{ y: -3 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                className="flex flex-col p-6 rounded-xl border border-white/6 bg-[#0e0e0e] hover:border-yellow-400/30 transition-all"
+                className="flex flex-col p-6 rounded-xl border border-white/6 bg-[#0e0e0e] hover:border-yellow-400/30 transition-all hover:shadow-lg hover:shadow-yellow-400/10"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-10 h-10 rounded-lg bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center">

@@ -20,14 +20,14 @@ export default function StatCounter({ value, duration = 1.5 }: { value: string; 
   }, [inView, value, count, duration])
 
   return (
-    <motion.span ref={ref}>
+    <span ref={ref}>
       {value.includes('s') ? (
-        <>~<motion.span>{rounded}</motion.span>s</>
+        <>~<motion.span style={{ minWidth: '1.5em', display: 'inline-block' }}>{rounded}</motion.span>s</>
       ) : value.includes('%') ? (
-        <><motion.span>{rounded}</motion.span>%</>
+        <><motion.span style={{ minWidth: '2em', display: 'inline-block' }}>{rounded}</motion.span>%</>
       ) : (
-        <motion.span>{rounded}</motion.span>
+        <motion.span style={{ minWidth: '1em', display: 'inline-block' }}>{rounded}</motion.span>
       )}
-    </motion.span>
+    </span>
   )
 }
