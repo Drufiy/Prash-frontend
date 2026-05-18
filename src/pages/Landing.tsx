@@ -389,13 +389,13 @@ export default function Landing() {
       {/* Why Prash */}
       <section aria-label="Why Prash" className="px-4 sm:px-6 py-16 sm:py-24 lg:py-32 border-b border-white/6">
         <div className="max-w-7xl mx-auto">
-          <AnimatedSection className="text-center mb-16">
-            <motion.p variants={fadeUp} className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">Why Prash</motion.p>
-            <motion.h2 variants={fadeUp} className="text-4xl font-semibold tracking-tight mb-6 text-white leading-snug">Built for the 2am CI failure</motion.h2>
-            <motion.p variants={fadeUp} className="text-white/65 text-base max-w-xl mx-auto">
+          <div className="text-center mb-16">
+            <p className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">Why Prash</p>
+            <h2 className="text-4xl font-semibold tracking-tight mb-6 text-white leading-snug">Built for the 2am CI failure</h2>
+            <p className="text-white/65 text-base max-w-xl mx-auto">
               When your builds break in the middle of a sprint.
-            </motion.p>
-          </AnimatedSection>
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -418,12 +418,8 @@ export default function Landing() {
                 stat: '0',
               },
             ].map(({ icon: Icon, title, desc, stat }, idx) => (
-              <motion.div
+              <div
                 key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                viewport={{ once: true, margin: '-100px' }}
                 className="flex flex-col p-6 rounded-xl border border-white/6 bg-[#0e0e0e] hover:border-yellow-400/30 transition-all hover:shadow-lg hover:shadow-yellow-400/10"
               >
                 <div className="flex items-start justify-between mb-4">
@@ -436,7 +432,7 @@ export default function Landing() {
                 </div>
                 <h3 className="font-semibold text-lg mb-2 text-white leading-snug">{title}</h3>
                 <p className="text-sm text-white/60 leading-relaxed">{desc}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
 
