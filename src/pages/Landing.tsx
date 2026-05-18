@@ -4,8 +4,7 @@ import {
   ArrowRight, Code2, Cpu, ChevronRight,
   Clock,
 } from 'lucide-react'
-import { motion, useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 import { posthog } from '@/lib/posthog'
@@ -25,15 +24,12 @@ const stagger = {
 }
 
 function AnimatedSection({ children, className }: { children: React.ReactNode; className?: string }) {
-  const ref = useRef(null)
-  const inView = useInView(ref, { once: true, margin: '-80px' })
   return (
     <motion.div
-      ref={ref}
       variants={stagger}
       initial="hidden"
-      animate={inView ? 'show' : 'hidden'}
-      viewport={{ once: true }}
+      whileInView="show"
+      viewport={{ once: true, margin: '-80px' }}
       className={className}
     >
       {children}
