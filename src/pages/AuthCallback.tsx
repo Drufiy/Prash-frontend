@@ -20,22 +20,25 @@ export default function AuthCallback() {
     if (ran.current) return
     ran.current = true
 
-    const code = new URLSearchParams(window.location.search).get('code')
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('code')
     if (!code) {
       navigate('/login?error=no_code', { replace: true })
       return
     }
+    const state = params.get('state') ?? sessionStorage.getItem('oauth_state') ?? undefined
+    sessionStorage.removeItem('oauth_state')
 
     api<CallbackResponse>('/auth/github/callback', {
       method: 'POST',
       body: JSON.stringify({
         code,
+        state,
         redirect_uri: `${window.location.origin}/auth/callback`,
       }),
     })
       .then(({ token, user }) => {
         login(token, user)
-        // Identify the user in PostHog so all future events are tied to them
         posthog.identify(user.id, {
           github_username: user.github_username,
           email: user.email ?? undefined,

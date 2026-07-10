@@ -1,9 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 import { posthog } from '@/lib/posthog'
+import { api } from '@/lib/api'
 
 function GitHubIcon() {
   return (
@@ -16,6 +17,7 @@ function GitHubIcon() {
 export default function Login() {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
+  const [signingIn, setSigningIn] = useState(false)
 
   useEffect(() => {
     if (!loading && user) navigate('/dashboard', { replace: true })
@@ -28,9 +30,22 @@ export default function Login() {
     if (error === 'session_expired') toast.error('Session expired — please sign in again.')
   }, [])
 
-  const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID as string
-  const redirectUri = `${window.location.origin}/auth/callback`
-  const githubUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=read:user%20user:email%20repo%20admin:repo_hook%20workflow&redirect_uri=${encodeURIComponent(redirectUri)}`
+  async function handleLogin() {
+    setSigningIn(true)
+    try {
+      const redirectUri = `${window.location.origin}/auth/callback`
+      const { url, state } = await api<{ url: string; state: string }>('/auth/github/login-url', {
+        method: 'POST',
+        body: JSON.stringify({ redirect_uri: redirectUri }),
+      })
+      sessionStorage.setItem('oauth_state', state)
+      posthog.capture('github_login_clicked', { source: 'login_page' })
+      window.location.href = url
+    } catch {
+      setSigningIn(false)
+      toast.error('Failed to start sign-in. Please try again.')
+    }
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4">
@@ -55,17 +70,11 @@ export default function Login() {
 
           <Button
             className="w-full bg-zinc-100 text-zinc-900 hover:bg-white gap-2"
-            asChild
+            onClick={handleLogin}
+            disabled={signingIn}
           >
-            <a
-              href={githubUrl}
-              onClick={() => posthog.capture('github_login_clicked', {
-                source: 'login_page',
-              })}
-            >
-              <GitHubIcon />
-              Continue with GitHub
-            </a>
+            <GitHubIcon />
+            {signingIn ? 'Redirecting…' : 'Continue with GitHub'}
           </Button>
 
           <p className="text-zinc-600 text-xs text-center leading-relaxed">
