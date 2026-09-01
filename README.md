@@ -1,79 +1,51 @@
 # Prash Frontend
 
-> **Full technical documentation:** See [PROJECT_DOC.md](../drufiy-backend/PROJECT_DOC.md) in the backend repo for complete architecture, API specs, and setup instructions covering both frontend and backend.
+The dashboard for [Prash](https://github.com/Drufiy/prash-backend), Drufiy's
+autonomous CI/CD repair agent. GitHub OAuth login, connected-repository management,
+and a live view of diagnosed failures and the pull requests Prash opens to fix them.
 
-## Frontend Stack
+> **Full technical documentation:** see [PROJECT_DOC.md](https://github.com/Drufiy/prash-backend/blob/main/PROJECT_DOC.md)
+> in the backend repo for architecture and API specs covering both sides. Frontend
+> specifics are in [FRONTEND.md](./FRONTEND.md).
 
-React 19 + TypeScript + Vite + Tailwind CSS v4 + Supabase Realtime
+## Stack
 
-See [FRONTEND.md](./FRONTEND.md) for frontend-specific reference documentation.
+React 19 + TypeScript + Vite + Tailwind CSS v4 + Supabase Realtime (live status
+updates as Prash works) + Radix UI + TanStack Query.
 
-Currently, two official plugins are available:
+## Local development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Copy `.env.example` to `.env` and fill in:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- `VITE_API_URL` — the backend's URL (`prash-backend` / `drufiy-backend`)
+- `VITE_GITHUB_CLIENT_ID` — GitHub OAuth App client ID
+- `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` — from the Supabase project (anon
+  key only, never `service_role`)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run build      # tsc -b && vite build
+npm run lint
+npm run preview
 ```
+
+## Deployment
+
+Runs on **Google Cloud Run** (service `prash-frontend`, project `prash-by-drufiy`,
+region `asia-south1`) via Google Cloud Buildpacks — no Dockerfile in this repo,
+Buildpacks auto-detects the Vite/Node app. Builds continuously from `main` via a
+Cloud Build GitHub trigger.
+
+**Known issue (2026-09-01):** the Buildpacks-built container currently fails Cloud
+Run's health check on deploy (doesn't bind `$PORT` in time), so pushes build
+successfully but don't yet go live automatically — Cloud Run keeps serving the last
+good manual deploy. Needs a fix (likely a `Procfile` / explicit start command
+binding host `0.0.0.0:$PORT`) before this is truly hands-off.
+
+## Status
+
+Live product frontend, in early access alongside the backend.
